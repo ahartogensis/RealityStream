@@ -139,31 +139,15 @@ void AComfyStreamActor::BeginPlay()
 		bAccumulateObjects ? TEXT("YES") : TEXT("NO"));
 	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ========================================"));
 
-	// Auto-connect if configured
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔌 Auto-connect status: RGB=%s, Depth=%s, Mask=%s"), 
-		RGBChannelConfig.bAutoReconnect ? TEXT("ON") : TEXT("OFF"),
-		DepthChannelConfig.bAutoReconnect ? TEXT("ON") : TEXT("OFF"),
-		MaskChannelConfig.bAutoReconnect ? TEXT("ON") : TEXT("OFF"));
-
+	// Auto-connect - only RGB channel is used (sequential mode: RGB, Depth, Mask all on Ch1)
 	if (RGBChannelConfig.bAutoReconnect)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Connecting RGB Channel (Channel %d)..."), RGBChannelConfig.ChannelNumber);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔌 Connecting to Channel %d (RGB/Depth/Mask sequential mode)..."), RGBChannelConfig.ChannelNumber);
 		ConnectRGBChannel();
 	}
-	if (DepthChannelConfig.bAutoReconnect)
-	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Connecting Depth Channel (Channel %d)..."), DepthChannelConfig.ChannelNumber);
-		ConnectDepthChannel();
-	}
-	if (MaskChannelConfig.bAutoReconnect)
-	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ⚠️ MASK CHANNEL AUTO-CONNECT (Channel %d)..."), MaskChannelConfig.ChannelNumber);
-		ConnectMaskChannel();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ MASK CHANNEL NOT AUTO-CONNECTING! Set Mask Channel Config -> Auto Reconnect = TRUE"));
-	}
+	
+	// Note: Depth and Mask channels are not used in sequential mode
+	// All 3 images (RGB, Depth, Mask) arrive on Channel 1
 }
 
 void AComfyStreamActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -547,17 +531,48 @@ void AComfyStreamActor::Perform3DReconstruction()
 	TArray<FObjectData> Objects;
 	
 	FObjectData SingleObject;
-	SingleObject.AverageDepth = 0.0f;
+	SingleObject.AverageDepth = 200.0f;
 	SingleObject.WorldPosition = GetActorLocation();
 	
-	// Calculate offset for accumulation mode
+	// Calculate offset for accumulation mode - use depth information for spacing
 	if (bAccumulateObjects)
 	{
-		// Spread objects out along X axis
-		float OffsetDistance = SpawnedObjects.Num() * 150.0f;  // 150 units per object
-		SingleObject.WorldPosition = GetActorLocation() + FVector(OffsetDistance, 0, 0);
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📦 Spawning 1 object #%d at offset %.1f (ignoring mask segmentation)"), 
-		       SpawnedObjects.Num() + 1, OffsetDistance);
+		int32 ObjectIndex = SpawnedObjects.Num();
+		
+		// Calculate average depth from the depth texture to determine distance
+		float AverageDepth = 0.5f;  // Default mid-depth
+		if (DepthPixels.Num() > 0)
+		{
+			// Sample the depth texture to find average darkness (depth)
+			float TotalDepth = 0.0f;
+			int32 SampleCount = 0;
+			
+			// Sample every 10th pixel for performance
+			for (int32 i = 0; i < DepthPixels.Num(); i += 10)
+			{
+				FColor DepthColor = DepthPixels[i];
+				// Convert to grayscale depth (0=far/dark, 1=near/bright)
+				float DepthValue = (DepthColor.R + DepthColor.G + DepthColor.B) / (3.0f * 255.0f);
+				TotalDepth += DepthValue;
+				SampleCount++;
+			}
+			AverageDepth = (SampleCount > 0) ? (TotalDepth / SampleCount) : 0.5f;
+		}
+		
+		// Depth to distance: brighter (white) = closer to camera, darker (black) = further from camera
+		// AverageDepth: 0 (black/far) to 1 (white/near)
+		// Use negative X so brighter objects are closer to camera origin
+		float DepthBasedDistance = AverageDepth * 500.0f;  // White=500, Black=0
+		
+		// Base spacing plus depth-based offset (X-axis only)
+		float BaseSpacing = 20.0f;  // Small spacing between objects
+		float X = -((ObjectIndex * BaseSpacing) + DepthBasedDistance);  // Negative X = towards camera
+		float Y = 0.0f;  // No lateral offset
+		float Z = 0.0f;  // No vertical offset
+		
+		SingleObject.WorldPosition = GetActorLocation() + FVector(X, Y, Z);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📦 Object #%d: AvgDepth=%.3f, DepthOffset=%.1f, FinalX=%.1f"), 
+		       SpawnedObjects.Num() + 1, AverageDepth, DepthBasedDistance, X);
 	}
 	else
 	{
@@ -565,6 +580,9 @@ void AComfyStreamActor::Perform3DReconstruction()
 	}
 	
 	Objects.Add(SingleObject);
+	
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔍 Added object to array, position=(%.1f, %.1f, %.1f)"), 
+	       SingleObject.WorldPosition.X, SingleObject.WorldPosition.Y, SingleObject.WorldPosition.Z);
 
 	// For each object, calculate depth and spawn mesh
 	for (FObjectData& Obj : Objects)
@@ -674,24 +692,15 @@ void AComfyStreamActor::Perform3DReconstruction()
 		}
 		else
 		{
-			// Fallback for objects without pixels (shouldn't happen with mask segmentation)
-			// Spawn at actor center with offset for accumulation
-			FVector BaseLocation = GetActorLocation();
-			
-			if (bAccumulateObjects)
-			{
-				float OffsetDistance = SpawnedObjects.Num() * 150.0f;
-				Obj.WorldPosition = BaseLocation + FVector(OffsetDistance, 0, 0);
-				UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ Object without pixels - using fixed offset %.1f"), OffsetDistance);
-			}
-			else
-			{
-				Obj.WorldPosition = BaseLocation;
-				UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ Object without pixels - spawning at actor center"));
-			}
+			// Object without pixels - use the pre-calculated position from above
+			// (This is normal in single-object mode where we calculate position from depth texture)
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Using depth-based position (no pixel data needed)"));
 		}
 
 		// Spawn mesh for this object
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 🚀 About to spawn at Obj.WorldPosition=(%.1f, %.1f, %.1f)"), 
+		       Obj.WorldPosition.X, Obj.WorldPosition.Y, Obj.WorldPosition.Z);
+		
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 		AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), Obj.WorldPosition, WorldRotation, SpawnParams);
@@ -713,43 +722,81 @@ void AComfyStreamActor::Perform3DReconstruction()
 			MeshComponent->RegisterComponent();
 			SpawnedActor->SetRootComponent(MeshComponent);
 			
+			// Re-set position after setting root component (SetRootComponent can reset transform)
+			SpawnedActor->SetActorLocation(Obj.WorldPosition);
+			
 			// Set scale to make objects visible (use relative scale since we're already in world space)
 			SpawnedActor->SetActorScale3D(FVector(ObjectScale, ObjectScale, ObjectScale));
 			
 			// Ensure rotation matches parent actor
 			SpawnedActor->SetActorRotation(WorldRotation);
 			
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📍 Actor transform set: Location=(%.1f, %.1f, %.1f)"), 
+			       SpawnedActor->GetActorLocation().X, SpawnedActor->GetActorLocation().Y, SpawnedActor->GetActorLocation().Z);
+			
 			// Disable Nanite if material is translucent
 			MeshComponent->bDisallowNanite = true;
+			
+			// Turn Off collision for objects
+			// Disable collision for objects (allow player to walk through them)
+			MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Collision disabled for spawned object"));
 
 			// Create material for this object
+			if (!BaseMaterial)
+			{
+				UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ BaseMaterial is NULL! Cannot create material for object!"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ BaseMaterial found: %s"), *BaseMaterial->GetName());
+			}
+			
 			UMaterialInstanceDynamic* ObjectMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, SpawnedActor);
 			if (ObjectMaterial)
 			{
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Created dynamic material instance"));
+				
 				// Set available textures (some might be null if decoding failed)
 				if (LatestRGBATexture)
 				{
-					// Use original RGB texture directly (mask handles transparency)
 					ObjectMaterial->SetTextureParameterValue(TEXT("RGB_Map"), LatestRGBATexture);
-					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied RGB texture to object (RGB_Map)"));
+					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied RGB texture %dx%d to RGB_Map"), 
+						LatestRGBATexture->GetSizeX(), LatestRGBATexture->GetSizeY());
 				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ LatestRGBATexture is NULL!"));
+				}
+				
 				if (LatestDepthTexture)
 				{
 					ObjectMaterial->SetTextureParameterValue(TEXT("Depth_Map"), LatestDepthTexture);
+					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied Depth texture %dx%d to Depth_Map"), 
+						LatestDepthTexture->GetSizeX(), LatestDepthTexture->GetSizeY());
 				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ LatestDepthTexture is NULL!"));
+				}
+				
 				if (LatestMaskTexture)
 				{
 					ObjectMaterial->SetTextureParameterValue(TEXT("Mask_Map"), LatestMaskTexture);
+					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied Mask texture %dx%d to Mask_Map"), 
+						LatestMaskTexture->GetSizeX(), LatestMaskTexture->GetSizeY());
 				}
-				MeshComponent->SetMaterial(0, ObjectMaterial);
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ LatestMaskTexture is NULL!"));
+				}
 				
-				// Debug: Log material parameters
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📋 Material Parameters Set:"));
-				UE_LOG(LogTemp, Display, TEXT("    RGB_Map: %s"), LatestRGBATexture ? TEXT("✓ SET") : TEXT("✗ NULL"));
-				UE_LOG(LogTemp, Display, TEXT("    Depth_Map: %s"), LatestDepthTexture ? TEXT("✓ SET") : TEXT("✗ NULL"));
-				UE_LOG(LogTemp, Display, TEXT("    Mask_Map: %s"), LatestMaskTexture ? TEXT("✓ SET") : TEXT("✗ NULL"));
-				UE_LOG(LogTemp, Display, TEXT("    Material Blend Mode: Check if Translucent in editor!"));
-				UE_LOG(LogTemp, Display, TEXT("    IMPORTANT: Mask_Map → Opacity Mask must be connected!"));
+				MeshComponent->SetMaterial(0, ObjectMaterial);
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Material applied to mesh component"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to create dynamic material instance!"));
 			}
 
 			SpawnedObjects.Add(SpawnedActor);
