@@ -32,11 +32,10 @@ UTexture2D* UComfyPngDecoder::DecodePNGToTextureWithFormat(const TArray<uint8>& 
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Invalid image data (not PNG or JPEG)"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Invalid image data (not PNG or JPEG)"));
 		return nullptr;
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyPNG] 📸 Detected %s format (%d bytes)"), *FormatName, PNGData.Num());
 
 	// Load ImageWrapper module
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
@@ -44,14 +43,14 @@ UTexture2D* UComfyPngDecoder::DecodePNGToTextureWithFormat(const TArray<uint8>& 
 
 	if (!ImageWrapper.IsValid())
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Failed to create image wrapper for %s"), *FormatName);
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Failed to create image wrapper for %s"), *FormatName);
 		return nullptr;
 	}
 
 	// Set compressed data
 	if (!ImageWrapper->SetCompressed(PNGData.GetData(), PNGData.Num()))
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Failed to parse %s data"), *FormatName);
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Failed to parse %s data"), *FormatName);
 		return nullptr;
 	}
 
@@ -61,7 +60,7 @@ UTexture2D* UComfyPngDecoder::DecodePNGToTextureWithFormat(const TArray<uint8>& 
 
 	if (Width <= 0 || Height <= 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Invalid image dimensions: %dx%d"), Width, Height);
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Invalid image dimensions: %dx%d"), Width, Height);
 		return nullptr;
 	}
 
@@ -72,7 +71,7 @@ UTexture2D* UComfyPngDecoder::DecodePNGToTextureWithFormat(const TArray<uint8>& 
 
 	if (!ImageWrapper->GetRaw(RGBFormat, BitDepth, UncompressedRGBA))
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Failed to decompress PNG"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Failed to decompress PNG"));
 		return nullptr;
 	}
 
@@ -109,7 +108,7 @@ UTexture2D* UComfyPngDecoder::CreateTextureFromData(const TArray<uint8>& Uncompr
 	UTexture2D* Texture = UTexture2D::CreateTransient(Width, Height, PixelFormat);
 	if (!Texture)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Failed to create texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Failed to create texture"));
 		return nullptr;
 	}
 
@@ -117,7 +116,7 @@ UTexture2D* UComfyPngDecoder::CreateTextureFromData(const TArray<uint8>& Uncompr
 	void* TextureData = Texture->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
 	if (!TextureData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] ❌ Failed to lock texture data"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyPNG] Failed to lock texture data"));
 		return nullptr;
 	}
 
@@ -130,7 +129,6 @@ UTexture2D* UComfyPngDecoder::CreateTextureFromData(const TArray<uint8>& Uncompr
 	// Update the texture resource
 	Texture->UpdateResource();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyPNG] ✅ Successfully created texture: %dx%d"), Width, Height);
 
 	return Texture;
 }

@@ -17,7 +17,7 @@
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 // ********** Begin Class UComfyHttpClient *********************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execGetServerURL); \
 	DECLARE_FUNCTION(execSetServerURL); \
 	DECLARE_FUNCTION(execGetSystemStats); \
@@ -29,7 +29,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 COMFYSTREAM_API UClass* Z_Construct_UClass_UComfyHttpClient_NoRegister();
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_INCLASS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUComfyHttpClient(); \
 	friend struct Z_Construct_UClass_UComfyHttpClient_Statics; \
@@ -40,7 +40,7 @@ public: \
 	DECLARE_SERIALIZER(UComfyHttpClient)
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_ENHANCED_CONSTRUCTORS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_ENHANCED_CONSTRUCTORS \
 	/** Deleted move- and copy-constructors, should never be used */ \
 	UComfyHttpClient(UComfyHttpClient&&) = delete; \
 	UComfyHttpClient(const UComfyHttpClient&) = delete; \
@@ -50,13 +50,13 @@ public: \
 	NO_API virtual ~UComfyHttpClient();
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_14_PROLOG
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_GENERATED_BODY \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_14_PROLOG
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_INCLASS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h_17_ENHANCED_CONSTRUCTORS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_INCLASS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h_17_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -66,6 +66,6 @@ class UComfyHttpClient;
 // ********** End Class UComfyHttpClient ***********************************************************
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyHttpClient_h
+#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyHttpClient_h
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

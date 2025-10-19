@@ -34,7 +34,7 @@ void UComfyImageFetcher::StartPolling(const FString& ServerURL, int32 ChannelNum
 	// Build WebSocket URL: ws://server:8001/image?channel=N
 	FString WebSocketURL = BuildWebSocketURL(ServerURL, ChannelNumber);
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] 🔌 Connecting to WebSocket: %s"), *WebSocketURL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] Connecting to WebSocket: %s"), *WebSocketURL);
 
 	// Create WebSocket connection
 	WebSocket = FWebSocketsModule::Get().CreateWebSocket(WebSocketURL);
@@ -53,7 +53,7 @@ void UComfyImageFetcher::StartPolling(const FString& ServerURL, int32 ChannelNum
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyImageFetcher] ❌ Failed to create WebSocket"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyImageFetcher] Failed to create WebSocket"));
 		SetConnectionStatus(EComfyConnectionStatus::Error);
 		OnError.Broadcast(TEXT("Failed to create WebSocket connection"));
 	}
@@ -88,13 +88,13 @@ bool UComfyImageFetcher::IsPolling() const
 
 void UComfyImageFetcher::OnWebSocketConnected()
 {
-	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] ✅ WebSocket connected to channel %d"), CurrentChannel);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] WebSocket connected to channel %d"), CurrentChannel);
 	SetConnectionStatus(EComfyConnectionStatus::Connected);
 }
 
 void UComfyImageFetcher::OnWebSocketConnectionError(const FString& Error)
 {
-	UE_LOG(LogTemp, Error, TEXT("[ComfyImageFetcher] ❌ WebSocket connection error: %s"), *Error);
+	UE_LOG(LogTemp, Error, TEXT("[ComfyImageFetcher] WebSocket connection error: %s"), *Error);
 	SetConnectionStatus(EComfyConnectionStatus::Error);
 	OnError.Broadcast(FString::Printf(TEXT("WebSocket connection error: %s"), *Error));
 }
@@ -127,7 +127,7 @@ void UComfyImageFetcher::OnWebSocketMessage(const void* Data, SIZE_T Size, SIZE_
 		return;
 	}
 
-	UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] 📨 Received WebSocket message: %llu bytes (remaining: %llu)"), 
+	UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] Received WebSocket message: %llu bytes (remaining: %llu)"), 
 		CurrentChannel, Size, BytesRemaining);
 
 	// Get or create buffer for this instance
@@ -137,7 +137,7 @@ void UComfyImageFetcher::OnWebSocketMessage(const void* Data, SIZE_T Size, SIZE_
 	// If we're not currently receiving chunks and buffer has old data, clear it (new message starting)
 	if (!bReceivingChunks && MessageBuffer.Num() > 0)
 	{
-		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] 🔄 Clearing old buffer (%d bytes) for new message"), CurrentChannel, MessageBuffer.Num());
+		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] Clearing old buffer (%d bytes) for new message"), CurrentChannel, MessageBuffer.Num());
 		MessageBuffer.Empty();
 	}
 
@@ -148,13 +148,13 @@ void UComfyImageFetcher::OnWebSocketMessage(const void* Data, SIZE_T Size, SIZE_
 	// Check if we have more chunks coming
 	if (BytesRemaining > 0)
 	{
-		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] 🔄 Buffered %llu bytes, waiting for %llu more..."), CurrentChannel, Size, BytesRemaining);
+		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] Buffered %llu bytes, waiting for %llu more..."), CurrentChannel, Size, BytesRemaining);
 		bReceivingChunks = true;
 		return;
 	}
 
 	// All chunks received, process the complete image
-	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher][Ch%d] ✅ Complete message received: %d bytes total"), 
+	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher][Ch%d] Complete message received: %d bytes total"), 
 		CurrentChannel, MessageBuffer.Num());
 	
 	// Process the complete image data
@@ -184,23 +184,14 @@ void UComfyImageFetcher::ProcessImageData(const TArray<uint8>& Data)
 	uint32 Header1 = (Data[0] << 24) | (Data[1] << 16) | (Data[2] << 8) | Data[3];
 	uint32 Header2 = (Data[4] << 24) | (Data[5] << 16) | (Data[6] << 8) | Data[7];
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] Header: [%u, %u], Total: %d bytes, Image: %d bytes"), 
-		Header1, Header2, Data.Num(), Data.Num() - 8);
 	
 	// Validate header - ComfyUI WebViewer should send [1, 2]
 	if (Header1 != 1 || Header2 != 2)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] ⚠️ Invalid header values [%u, %u], expected [1, 2]. Skipping corrupted message."), 
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] Invalid header values [%u, %u], expected [1, 2]. Skipping corrupted message."), 
 			Header1, Header2);
 		return;
 	}
-	
-	// Log first few bytes after header for debugging
-	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] First 4 bytes after header: 0x%02X 0x%02X 0x%02X 0x%02X"), 
-		Data.Num() > 8 ? Data[8] : 0, 
-		Data.Num() > 9 ? Data[9] : 0, 
-		Data.Num() > 10 ? Data[10] : 0, 
-		Data.Num() > 11 ? Data[11] : 0);
 
 	// Extract image data (skip 8-byte header)
 	TArray<uint8> ImageBytes;
@@ -219,7 +210,7 @@ void UComfyImageFetcher::ProcessImageData(const TArray<uint8>& Data)
 		
 		if (DecodedTexture)
 		{
-			UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher][Ch%d] ✅ Successfully decoded image: %dx%d"), 
+			UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher][Ch%d] Successfully decoded image: %dx%d"), 
 				CurrentChannel, DecodedTexture->GetSizeX(), DecodedTexture->GetSizeY());
 			
 			// Broadcast the texture
@@ -227,7 +218,7 @@ void UComfyImageFetcher::ProcessImageData(const TArray<uint8>& Data)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("[ComfyImageFetcher][Ch%d] ❌ Failed to decode image - this may be corrupted data from buffer overflow"), CurrentChannel);
+			UE_LOG(LogTemp, Error, TEXT("[ComfyImageFetcher][Ch%d] Failed to decode image"), CurrentChannel);
 			
 			// Clear the static buffer for this instance to prevent future corruption
 			static TMap<UComfyImageFetcher*, TArray<uint8>> MessageBuffers;

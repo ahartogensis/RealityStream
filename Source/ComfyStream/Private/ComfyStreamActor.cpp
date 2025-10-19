@@ -77,7 +77,7 @@ void AComfyStreamActor::BeginPlay()
 	if (bEnable3DReconstruction)
 	{
 		DisplayMesh->SetVisibility(false);
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🙈 Display mesh hidden (3D Reconstruction mode)"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Display mesh hidden (3D Reconstruction mode)"));
 	}
 
 	// Create RGB channel component (Channel 1)
@@ -133,16 +133,16 @@ void AComfyStreamActor::BeginPlay()
 
 	// Log 3D reconstruction status
 	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ========================================"));
-	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 🎮 3D RECONSTRUCTION MODE = %s"), 
-		bEnable3DReconstruction ? TEXT("ENABLED ✓") : TEXT("DISABLED ✗"));
-	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 📦 ACCUMULATE OBJECTS = %s"), 
+	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 3D RECONSTRUCTION MODE = %s"), 
+		bEnable3DReconstruction ? TEXT("ENABLED") : TEXT("DISABLED"));
+	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ACCUMULATE OBJECTS = %s"), 
 		bAccumulateObjects ? TEXT("YES") : TEXT("NO"));
 	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ========================================"));
 
 	// Auto-connect - only RGB channel is used (sequential mode: RGB, Depth, Mask all on Ch1)
 	if (RGBChannelConfig.bAutoReconnect)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔌 Connecting to Channel %d (RGB/Depth/Mask sequential mode)..."), RGBChannelConfig.ChannelNumber);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Connecting to Channel %d (RGB/Depth/Mask sequential mode)..."), RGBChannelConfig.ChannelNumber);
 		ConnectRGBChannel();
 	}
 	
@@ -205,7 +205,7 @@ void AComfyStreamActor::ConnectAllChannels()
 
 void AComfyStreamActor::ClearAllSpawnedObjects()
 {
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🧹 Manual clear requested"));
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Manual clear requested"));
 	ClearSpawnedObjects();
 }
 
@@ -241,7 +241,7 @@ void AComfyStreamActor::UpdateExistingObjectMaterials()
 		}
 	}
 	
-	UE_LOG(LogTemp, Verbose, TEXT("[ComfyStreamActor] 🔄 Updated materials on %d existing objects"), SpawnedObjects.Num());
+	UE_LOG(LogTemp, Verbose, TEXT("[ComfyStreamActor] Updated materials on %d existing objects"), SpawnedObjects.Num());
 }
 
 void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
@@ -258,12 +258,12 @@ void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
 	bool bIsBatchImage = (Width >= 1024 && Height >= 512 && Width % 3 == 0);
 	
 	// Debug: Log image dimensions for troubleshooting
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔍 Image dimensions: %dx%d (Batch: %s)"), 
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Image dimensions: %dx%d (Batch: %s)"), 
 		Width, Height, bIsBatchImage ? TEXT("YES") : TEXT("NO"));
 	
 	if (bIsBatchImage)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔄 Detected batch image %dx%d - processing regions..."), Width, Height);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Detected batch image %dx%d - processing regions..."), Width, Height);
 		ProcessBatchImage(Texture);
 		return; // ProcessBatchImage handles everything
 	}
@@ -273,7 +273,7 @@ void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
 	int32 ImageIndex = SequenceCounter % 3;
 	SequenceCounter++;
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📥 Sequential image #%d received %dx%d (Type: %s)"), 
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Sequential image #%d received %dx%d (Type: %s)"), 
 		SequenceCounter, Width, Height,
 		ImageIndex == 0 ? TEXT("RGB") : (ImageIndex == 1 ? TEXT("Depth") : TEXT("Mask")));
 	
@@ -282,7 +282,7 @@ void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
 	{
 		// First image: RGB
 		LatestRGBATexture = Texture;
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Stored as RGB texture"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Stored as RGB texture"));
 		
 		// Update the dynamic material (only in non-reconstruction mode)
 		if (DynamicMaterial && Texture && !bEnable3DReconstruction)
@@ -295,7 +295,7 @@ void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
 	{
 		// Second image: Depth
 		LatestDepthTexture = Texture;
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Stored as Depth texture"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Stored as Depth texture"));
 		
 		// Update the dynamic material (only in non-reconstruction mode)
 		if (DynamicMaterial && Texture && !bEnable3DReconstruction)
@@ -308,7 +308,7 @@ void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
 	{
 		// Third image: Mask
 		LatestMaskTexture = Texture;
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Stored as Mask texture"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Stored as Mask texture"));
 		
 		// Update the dynamic material (only in non-reconstruction mode)
 		if (DynamicMaterial && Texture && !bEnable3DReconstruction)
@@ -330,31 +330,31 @@ void AComfyStreamActor::OnRGBATextureReceived(UTexture2D* Texture)
 			
 			if (TimeSinceLastReconstruction >= MinReconstructionInterval)
 			{
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎯 Complete set received (RGB+Depth+Mask) - starting 3D reconstruction..."));
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Complete set received (RGB+Depth+Mask) - starting 3D reconstruction..."));
 				LastReconstructionTime = CurrentTime;
 				ProcessReconstructionIfReady();
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⏱️ DEBOUNCED: Only %.2fs since last reconstruction (min: %.2fs)"), 
+				UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] DEBOUNCED: Only %.2fs since last reconstruction (min: %.2fs)"), 
 					TimeSinceLastReconstruction, MinReconstructionInterval);
 			}
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ Mask received but missing other textures! RGB:%s Depth:%s Mask:%s"), 
-				LatestRGBATexture ? TEXT("✓") : TEXT("✗"),
-				LatestDepthTexture ? TEXT("✓") : TEXT("✗"), 
-				LatestMaskTexture ? TEXT("✓") : TEXT("✗"));
+			UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] Mask received but missing other textures! RGB:%s Depth:%s Mask:%s"), 
+				LatestRGBATexture ? TEXT("YES") : TEXT("NO"),
+				LatestDepthTexture ? TEXT("YES") : TEXT("NO"), 
+				LatestMaskTexture ? TEXT("YES") : TEXT("NO"));
 		}
 	}
 	else if (bEnable3DReconstruction && ImageIndex != 2)
 	{
 		// Just log that we're waiting for the full set
-		UE_LOG(LogTemp, Verbose, TEXT("[ComfyStreamActor] ⏳ Waiting for complete set... RGB:%s Depth:%s Mask:%s"), 
-			LatestRGBATexture ? TEXT("✓") : TEXT("✗"),
-			LatestDepthTexture ? TEXT("✓") : TEXT("✗"), 
-			LatestMaskTexture ? TEXT("✓") : TEXT("✗"));
+		UE_LOG(LogTemp, Verbose, TEXT("[ComfyStreamActor] Waiting for complete set... RGB:%s Depth:%s Mask:%s"), 
+			LatestRGBATexture ? TEXT("YES") : TEXT("NO"),
+			LatestDepthTexture ? TEXT("YES") : TEXT("NO"), 
+			LatestMaskTexture ? TEXT("YES") : TEXT("NO"));
 	}
 }
 
@@ -377,14 +377,14 @@ void AComfyStreamActor::OnDepthTextureReceived(UTexture2D* Texture)
 	// So this won't be triggered unless you reconfigure to use separate channels
 	if (bEnable3DReconstruction)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📥 Depth texture received via Channel 2 (separate channel mode)"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Depth texture received via Channel 2 (separate channel mode)"));
 		UpdateExistingObjectMaterials();
 	}
 }
 
 void AComfyStreamActor::OnMaskTextureReceived(UTexture2D* Texture)
 {
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎭 MASK TEXTURE RECEIVED! Size: %dx%d"), 
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] MASK TEXTURE RECEIVED! Size: %dx%d"), 
 		Texture ? Texture->GetSizeX() : 0, 
 		Texture ? Texture->GetSizeY() : 0);
 
@@ -405,7 +405,7 @@ void AComfyStreamActor::OnMaskTextureReceived(UTexture2D* Texture)
 	// So this won't be triggered unless you reconfigure to use separate channels
 	if (bEnable3DReconstruction)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎭 Mask texture received via Channel 3 (separate channel mode)"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Mask texture received via Channel 3 (separate channel mode)"));
 	}
 }
 
@@ -454,23 +454,23 @@ void AComfyStreamActor::ProcessReconstructionIfReady()
 	}
 
 	// Log current texture status
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📋 Texture Status: RGB=%s, Depth=%s"), 
-		LatestRGBATexture ? TEXT("✓") : TEXT("✗"),
-		LatestDepthTexture ? TEXT("✓") : TEXT("✗"));
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Texture Status: RGB=%s, Depth=%s"), 
+		LatestRGBATexture ? TEXT("YES") : TEXT("NO"),
+		LatestDepthTexture ? TEXT("YES") : TEXT("NO"));
 
 	// New workflow: RGB has alpha transparency, no mask needed
 	// Just need RGB texture (Depth is optional)
 	if (LatestRGBATexture)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎯 Starting 3D reconstruction... (RGB=%s, Depth=%s)"),
-			LatestRGBATexture ? TEXT("✓") : TEXT("✗"),
-			LatestDepthTexture ? TEXT("✓") : TEXT("✗"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Starting 3D reconstruction... (RGB=%s, Depth=%s)"),
+			LatestRGBATexture ? TEXT("YES") : TEXT("NO"),
+			LatestDepthTexture ? TEXT("YES") : TEXT("NO"));
 		
 		Perform3DReconstruction();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⏳ Waiting for RGB texture (with alpha transparency)"));
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] Waiting for RGB texture (with alpha transparency)"));
 	}
 }
 
@@ -479,33 +479,26 @@ void AComfyStreamActor::Perform3DReconstruction()
 	// LOG: Track reconstruction calls
 	static int32 ReconstructionCount = 0;
 	ReconstructionCount++;
-	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 🔨 RECONSTRUCTION #%d STARTING (Total spawned so far: %d)"), 
+	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] RECONSTRUCTION #%d STARTING (Total spawned so far: %d)"), 
 		ReconstructionCount, SpawnedObjects.Num());
 	
 	if (!LatestRGBATexture)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ Missing RGB texture for 3D reconstruction"));
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] Missing RGB texture for 3D reconstruction"));
 		return;
-	}
-
-	// Clear previous objects (only if not accumulating)
-	if (!bAccumulateObjects)
-	{
-		ClearSpawnedObjects();
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🗑️ Cleared previous objects (non-accumulation mode)"));
 	}
 	else
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ➕ Accumulation mode: Adding to existing %d objects"), SpawnedObjects.Num());
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Accumulation mode: Adding to existing %d objects"), SpawnedObjects.Num());
 	}
 
 	// Get texture dimensions from RGB texture
 	int32 Width = LatestRGBATexture->GetSizeX();
 	int32 Height = LatestRGBATexture->GetSizeY();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📊 Processing %dx%d textures (RGB with alpha transparency)"), Width, Height);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Processing %dx%d textures (RGB with alpha transparency)"), Width, Height);
 
-	// Read depth texture pixels (optional - use black if not available)
+	// Read depth texture pixels
 	TArray<FColor> DepthPixels;
 	if (LatestDepthTexture)
 	{
@@ -513,7 +506,7 @@ void AComfyStreamActor::Perform3DReconstruction()
 		const FColor* DepthData = static_cast<const FColor*>(DepthMip.BulkData.LockReadOnly());
 		if (!DepthData)
 		{
-			UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to lock depth texture"));
+			UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to lock depth texture"));
 			return;
 		}
 		DepthPixels.Append(DepthData, Width * Height);
@@ -521,9 +514,13 @@ void AComfyStreamActor::Perform3DReconstruction()
 	}
 	else
 	{
-		// No depth texture - use default (all black = far)
+		// No depth texture - use default (all white = near/uncertain)
 		DepthPixels.SetNum(Width * Height);
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ No depth texture, using default depth"));
+		for (int32 i = 0; i < Width * Height; i++)
+		{
+			DepthPixels[i] = FColor(255, 255, 255, 255);  // White = near/uncertain
+		}
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] No depth texture, using white (near/uncertain) default depth"));
 	}
 
 	// For accumulation mode, spawn ONLY ONE ACTOR per reconstruction
@@ -571,17 +568,17 @@ void AComfyStreamActor::Perform3DReconstruction()
 		float Z = 0.0f;  // No vertical offset
 		
 		SingleObject.WorldPosition = GetActorLocation() + FVector(X, Y, Z);
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📦 Object #%d: AvgDepth=%.3f, DepthOffset=%.1f, FinalX=%.1f"), 
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Object #%d: AvgDepth=%.3f, DepthOffset=%.1f, FinalX=%.1f"), 
 		       SpawnedObjects.Num() + 1, AverageDepth, DepthBasedDistance, X);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📦 Spawning 1 object at actor center (ignoring mask segmentation)"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Spawning 1 object at actor center (ignoring mask segmentation)"));
 	}
 	
 	Objects.Add(SingleObject);
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔍 Added object to array, position=(%.1f, %.1f, %.1f)"), 
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Added object to array, position=(%.1f, %.1f, %.1f)"), 
 	       SingleObject.WorldPosition.X, SingleObject.WorldPosition.Y, SingleObject.WorldPosition.Z);
 
 	// For each object, calculate depth and spawn mesh
@@ -651,7 +648,7 @@ void AComfyStreamActor::Perform3DReconstruction()
 			float DepthToUse = (AvgDepth > 0.01f) ? AvgDepth : FMath::Max(CenterDepth, MaxDepth * 0.5f);
 			Obj.AverageDepth = DepthToUse;
 			
-			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎨 Object Color: R=%d G=%d B=%d | Depth: Center=%.3f, Min=%.3f, Max=%.3f, Avg=%.3f, Using=%.3f"), 
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Object Color: R=%d G=%d B=%d | Depth: Center=%.3f, Min=%.3f, Max=%.3f, Avg=%.3f, Using=%.3f"), 
 				(int)(Obj.MaskColor.R * 255), (int)(Obj.MaskColor.G * 255), (int)(Obj.MaskColor.B * 255),
 				CenterDepth, MinDepth, MaxDepth, AvgDepth, DepthToUse);
 
@@ -694,11 +691,11 @@ void AComfyStreamActor::Perform3DReconstruction()
 		{
 			// Object without pixels - use the pre-calculated position from above
 			// (This is normal in single-object mode where we calculate position from depth texture)
-			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Using depth-based position (no pixel data needed)"));
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Using depth-based position (no pixel data needed)"));
 		}
 
 		// Spawn mesh for this object
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 🚀 About to spawn at Obj.WorldPosition=(%.1f, %.1f, %.1f)"), 
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] About to spawn at Obj.WorldPosition=(%.1f, %.1f, %.1f)"), 
 		       Obj.WorldPosition.X, Obj.WorldPosition.Y, Obj.WorldPosition.Z);
 		
 		FActorSpawnParameters SpawnParams;
@@ -731,7 +728,7 @@ void AComfyStreamActor::Perform3DReconstruction()
 			// Ensure rotation matches parent actor
 			SpawnedActor->SetActorRotation(WorldRotation);
 			
-			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📍 Actor transform set: Location=(%.1f, %.1f, %.1f)"), 
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Actor transform set: Location=(%.1f, %.1f, %.1f)"), 
 			       SpawnedActor->GetActorLocation().X, SpawnedActor->GetActorLocation().Y, SpawnedActor->GetActorLocation().Z);
 			
 			// Disable Nanite if material is translucent
@@ -740,84 +737,99 @@ void AComfyStreamActor::Perform3DReconstruction()
 			// Turn Off collision for objects
 			// Disable collision for objects (allow player to walk through them)
 			MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Collision disabled for spawned object"));
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Collision disabled for spawned object"));
 
 			// Create material for this object
 			if (!BaseMaterial)
 			{
-				UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ BaseMaterial is NULL! Cannot create material for object!"));
+				UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] BaseMaterial is NULL! Cannot create material for object!"));
 			}
 			else
 			{
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ BaseMaterial found: %s"), *BaseMaterial->GetName());
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] BaseMaterial found: %s"), *BaseMaterial->GetName());
 			}
 			
 			UMaterialInstanceDynamic* ObjectMaterial = UMaterialInstanceDynamic::Create(BaseMaterial, SpawnedActor);
 			if (ObjectMaterial)
 			{
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Created dynamic material instance"));
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Created dynamic material instance"));
 				
 				// Set available textures (some might be null if decoding failed)
 				if (LatestRGBATexture)
 				{
 					ObjectMaterial->SetTextureParameterValue(TEXT("RGB_Map"), LatestRGBATexture);
-					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied RGB texture %dx%d to RGB_Map"), 
+					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Applied RGB texture %dx%d to RGB_Map"), 
 						LatestRGBATexture->GetSizeX(), LatestRGBATexture->GetSizeY());
 				}
 				else
 				{
-					UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ LatestRGBATexture is NULL!"));
+					UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] LatestRGBATexture is NULL!"));
 				}
 				
 				if (LatestDepthTexture)
 				{
 					ObjectMaterial->SetTextureParameterValue(TEXT("Depth_Map"), LatestDepthTexture);
-					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied Depth texture %dx%d to Depth_Map"), 
+					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Applied Depth texture %dx%d to Depth_Map"), 
 						LatestDepthTexture->GetSizeX(), LatestDepthTexture->GetSizeY());
 				}
 				else
 				{
-					UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ LatestDepthTexture is NULL!"));
+					UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] LatestDepthTexture is NULL!"));
 				}
 				
 				if (LatestMaskTexture)
 				{
 					ObjectMaterial->SetTextureParameterValue(TEXT("Mask_Map"), LatestMaskTexture);
-					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Applied Mask texture %dx%d to Mask_Map"), 
+					UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Applied Mask texture %dx%d to Mask_Map"), 
 						LatestMaskTexture->GetSizeX(), LatestMaskTexture->GetSizeY());
 				}
 				else
 				{
-					UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ LatestMaskTexture is NULL!"));
+					UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] LatestMaskTexture is NULL!"));
 				}
 				
 				MeshComponent->SetMaterial(0, ObjectMaterial);
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Material applied to mesh component"));
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Material applied to mesh component"));
 			}
 			else
 			{
-				UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to create dynamic material instance!"));
+				UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to create dynamic material instance!"));
 			}
 
 			SpawnedObjects.Add(SpawnedActor);
 
 			if (bSpawnSingleObject)
 			{
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Spawned single object at WORLD (%.1f, %.1f, %.1f) Scale=%.1f"), 
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Spawned single object at WORLD (%.1f, %.1f, %.1f) Scale=%.1f"), 
 					Obj.WorldPosition.X, Obj.WorldPosition.Y, Obj.WorldPosition.Z, ObjectScale);
 			}
 			else
 			{
-				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Spawned object at WORLD (%.1f, %.1f, %.1f) LOCAL (%.1f, %.1f, %.1f) Scale=%.1f, Rot=(%.1f, %.1f, %.1f), %d pixels, depth: %.2f"), 
+				UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Spawned object at WORLD (%.1f, %.1f, %.1f) LOCAL (%.1f, %.1f, %.1f) Scale=%.1f, Rot=(%.1f, %.1f, %.1f), %d pixels, depth: %.2f"), 
 					Obj.WorldPosition.X, Obj.WorldPosition.Y, Obj.WorldPosition.Z,
 					LocalPosition.X, LocalPosition.Y, LocalPosition.Z, ObjectScale,
 					WorldRotation.Pitch, WorldRotation.Yaw, WorldRotation.Roll,
 					Obj.Pixels.Num(), Obj.AverageDepth);
 			}
+			
+			// Start timer to destroy the object after 3 seconds
+			FTimerHandle DestroyTimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(
+				DestroyTimerHandle,
+				[SpawnedActor]()
+				{
+					if (SpawnedActor && SpawnedActor->IsValidLowLevel())
+					{
+						SpawnedActor->Destroy();
+					}
+				},
+				3.0f,
+				false
+			);
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] 🎉 RECONSTRUCTION COMPLETE! Total objects in scene: %d (just added %d new objects)"), 
+	UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] RECONSTRUCTION COMPLETE! Total objects in scene: %d (just added %d new objects)"), 
 		SpawnedObjects.Num(), Objects.Num());
 }
 
@@ -835,7 +847,7 @@ void AComfyStreamActor::Perform3DReconstruction()
 	
 	if (ClearedCount > 0)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🗑️ Cleared %d spawned objects"), ClearedCount);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Cleared %d spawned objects"), ClearedCount);
 	}
 }
 
@@ -846,7 +858,7 @@ TArray<AComfyStreamActor::FObjectData> AComfyStreamActor::SegmentObjects(const T
 
 	// Segment by unique colors in mask
 	// Use color tolerance to group similar colors (in case of compression artifacts)
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎨 Segmenting with ColorTolerance=%d, MinObjectSize=%d"), 
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Segmenting with ColorTolerance=%d, MinObjectSize=%d"), 
 		ColorTolerance, MinObjectSize);
 	
 	for (int32 Y = 0; Y < Height; Y++)
@@ -900,7 +912,7 @@ TArray<AComfyStreamActor::FObjectData> AComfyStreamActor::SegmentObjects(const T
 		}
 	}
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎨 Segmented %d unique objects from mask"), Objects.Num());
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Segmented %d unique objects from mask"), Objects.Num());
 
 	return Objects;
 }
@@ -919,7 +931,7 @@ UTexture2D* AComfyStreamActor::GenerateRGBAFromRGB(UTexture2D* RGBTexture, float
 	UTexture2D* RGBATexture = UTexture2D::CreateTransient(Width, Height, PF_B8G8R8A8);
 	if (!RGBATexture)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to create RGBA texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to create RGBA texture"));
 		return nullptr;
 	}
 	
@@ -935,7 +947,7 @@ UTexture2D* AComfyStreamActor::GenerateRGBAFromRGB(UTexture2D* RGBTexture, float
 	const FColor* SourceData = static_cast<const FColor*>(SourceMip.BulkData.LockReadOnly());
 	if (!SourceData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to lock source RGB texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to lock source RGB texture"));
 		return nullptr;
 	}
 	
@@ -945,7 +957,7 @@ UTexture2D* AComfyStreamActor::GenerateRGBAFromRGB(UTexture2D* RGBTexture, float
 	if (!DestData)
 	{
 		SourceMip.BulkData.Unlock();
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to lock RGBA texture for writing"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to lock RGBA texture for writing"));
 		return nullptr;
 	}
 	
@@ -979,7 +991,7 @@ UTexture2D* AComfyStreamActor::GenerateRGBAFromRGB(UTexture2D* RGBTexture, float
 	// Update the texture resource
 	RGBATexture->UpdateResource();
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Generated RGBA texture: %dx%d, made %d pixels transparent (%.1f%%)"),
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Generated RGBA texture: %dx%d, made %d pixels transparent (%.1f%%)"),
 	       Width, Height, TransparentCount, (TransparentCount * 100.0f) / (Width * Height));
 	
 	return RGBATexture;
@@ -998,7 +1010,7 @@ UTexture2D* AComfyStreamActor::ExtractRegionFromBatch(UTexture2D* BatchTexture, 
 	// Validate region bounds
 	if (StartX < 0 || StartY < 0 || StartX + Width > BatchWidth || StartY + Height > BatchHeight)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Invalid region bounds: StartX=%d, StartY=%d, Width=%d, Height=%d, BatchSize=%dx%d"),
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Invalid region bounds: StartX=%d, StartY=%d, Width=%d, Height=%d, BatchSize=%dx%d"),
 			StartX, StartY, Width, Height, BatchWidth, BatchHeight);
 		return nullptr;
 	}
@@ -1007,7 +1019,7 @@ UTexture2D* AComfyStreamActor::ExtractRegionFromBatch(UTexture2D* BatchTexture, 
 	UTexture2D* ExtractedTexture = UTexture2D::CreateTransient(Width, Height, PF_B8G8R8A8);
 	if (!ExtractedTexture)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to create extracted texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to create extracted texture"));
 		return nullptr;
 	}
 	
@@ -1023,7 +1035,7 @@ UTexture2D* AComfyStreamActor::ExtractRegionFromBatch(UTexture2D* BatchTexture, 
 	const FColor* SourceData = static_cast<const FColor*>(SourceMip.BulkData.LockReadOnly());
 	if (!SourceData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to lock batch texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to lock batch texture"));
 		return nullptr;
 	}
 	
@@ -1033,7 +1045,7 @@ UTexture2D* AComfyStreamActor::ExtractRegionFromBatch(UTexture2D* BatchTexture, 
 	if (!DestData)
 	{
 		SourceMip.BulkData.Unlock();
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to lock extracted texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to lock extracted texture"));
 		return nullptr;
 	}
 	
@@ -1061,7 +1073,7 @@ UTexture2D* AComfyStreamActor::ExtractRegionFromBatch(UTexture2D* BatchTexture, 
 	DestMip.BulkData.Unlock();
 	ExtractedTexture->UpdateResource();
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Extracted region %dx%d at (%d,%d) from batch %dx%d"),
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Extracted region %dx%d at (%d,%d) from batch %dx%d"),
 		Width, Height, StartX, StartY, BatchWidth, BatchHeight);
 	
 	return ExtractedTexture;
@@ -1071,7 +1083,7 @@ void AComfyStreamActor::ProcessBatchImage(UTexture2D* BatchTexture)
 {
 	if (!BatchTexture)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ No batch texture to process"));
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] No batch texture to process"));
 		return;
 	}
 	
@@ -1082,7 +1094,7 @@ void AComfyStreamActor::ProcessBatchImage(UTexture2D* BatchTexture)
 	int32 RegionWidth = BatchWidth / 3;  // Each region is 1/3 of total width
 	int32 RegionHeight = BatchHeight;
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔄 Processing batch image %dx%d -> horizontal regions %dx%d"),
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Processing batch image %dx%d -> horizontal regions %dx%d"),
 		BatchWidth, BatchHeight, RegionWidth, RegionHeight);
 	
 	// Extract regions (horizontal concatenation from ComfyUI ImageBatch):
@@ -1097,30 +1109,30 @@ void AComfyStreamActor::ProcessBatchImage(UTexture2D* BatchTexture)
 	if (RGBRegion)
 	{
 		LatestRGBATexture = RGBRegion;
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📥 RGB region extracted"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] RGB region extracted"));
 	}
 	
 	if (DepthRegion)
 	{
 		LatestDepthTexture = DepthRegion;
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📥 Depth region extracted"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Depth region extracted"));
 	}
 	
 	if (MaskRegion)
 	{
 		LatestMaskTexture = MaskRegion;
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 📥 Mask region extracted"));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Mask region extracted"));
 	}
 	
 	// Trigger 3D reconstruction with all three textures
 	if (LatestRGBATexture)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎯 Starting 3D reconstruction from batch image..."));
+		UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Starting 3D reconstruction from batch image..."));
 		ProcessReconstructionIfReady();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ No RGB region extracted from batch"));
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] No RGB region extracted from batch"));
 	}
 }
 
@@ -1130,7 +1142,7 @@ TArray<AComfyStreamActor::FObjectData> AComfyStreamActor::SegmentObjectsFromMask
 	
 	if (!MaskTexture)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] ⚠️ No mask texture for segmentation"));
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyStreamActor] No mask texture for segmentation"));
 		return Objects;
 	}
 	
@@ -1139,7 +1151,7 @@ TArray<AComfyStreamActor::FObjectData> AComfyStreamActor::SegmentObjectsFromMask
 	const FColor* MaskData = static_cast<const FColor*>(MaskMip.BulkData.LockReadOnly());
 	if (!MaskData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] ❌ Failed to lock mask texture"));
+		UE_LOG(LogTemp, Error, TEXT("[ComfyStreamActor] Failed to lock mask texture"));
 		return Objects;
 	}
 	
@@ -1155,7 +1167,7 @@ TArray<AComfyStreamActor::FObjectData> AComfyStreamActor::SegmentObjectsFromMask
 		}
 	}
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🔍 Found %d unique colors in mask"), UniqueColors.Num());
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Found %d unique colors in mask"), UniqueColors.Num());
 	
 	// Create object data for each unique color
 	for (const FColor& MaskColor : UniqueColors)
@@ -1205,19 +1217,19 @@ TArray<AComfyStreamActor::FObjectData> AComfyStreamActor::SegmentObjectsFromMask
 		if (Object.Pixels.Num() >= MinObjectSize)
 		{
 			Objects.Add(Object);
-			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] ✅ Object: %d pixels, avg depth %.3f, color RGB(%d,%d,%d)"),
+			UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Object: %d pixels, avg depth %.3f, color RGB(%d,%d,%d)"),
 				Object.Pixels.Num(), Object.AverageDepth, MaskColor.R, MaskColor.G, MaskColor.B);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Verbose, TEXT("[ComfyStreamActor] ⚠️ Skipped small object: %d pixels (min: %d)"),
+			UE_LOG(LogTemp, Verbose, TEXT("[ComfyStreamActor] Skipped small object: %d pixels (min: %d)"),
 				Object.Pixels.Num(), MinObjectSize);
 		}
 	}
 	
 	MaskMip.BulkData.Unlock();
 	
-	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] 🎯 Mask segmentation complete: %d valid objects"), Objects.Num());
+	UE_LOG(LogTemp, Display, TEXT("[ComfyStreamActor] Mask segmentation complete: %d valid objects"), Objects.Num());
 	return Objects;
 }
 

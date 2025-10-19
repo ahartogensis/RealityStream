@@ -87,5 +87,5 @@
 /DPROJECT_COPYRIGHT_STRING="Fill out your copyright notice in the Description page of Project Settings."
 /DPROJECT_PRODUCT_NAME=3D_reconstruction
 /DPROJECT_PRODUCT_IDENTIFIER=Reconstruction_3D
-/fo "C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Default.rc2.res"
+/fo "C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Default.rc2.res"
 "../Build/Windows/Resources/Default.rc2"

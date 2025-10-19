@@ -20,7 +20,7 @@ void UComfyHttpClient::SendPrompt(const FString& PromptJSON)
 	Request->SetContentAsString(PromptJSON);
 	Request->ProcessRequest();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] 📤 Sending prompt to: %s"), *URL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Sending prompt to: %s"), *URL);
 }
 
 void UComfyHttpClient::GetQueueStatus()
@@ -33,7 +33,7 @@ void UComfyHttpClient::GetQueueStatus()
 	Request->SetVerb(TEXT("GET"));
 	Request->ProcessRequest();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] 📤 Getting queue status from: %s"), *URL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Getting queue status from: %s"), *URL);
 }
 
 void UComfyHttpClient::GetHistory(const FString& PromptID)
@@ -50,7 +50,7 @@ void UComfyHttpClient::GetHistory(const FString& PromptID)
 	Request->SetVerb(TEXT("GET"));
 	Request->ProcessRequest();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] 📤 Getting history from: %s"), *URL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Getting history from: %s"), *URL);
 }
 
 void UComfyHttpClient::InterruptQueue()
@@ -63,7 +63,7 @@ void UComfyHttpClient::InterruptQueue()
 	Request->SetVerb(TEXT("POST"));
 	Request->ProcessRequest();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] 📤 Interrupting queue at: %s"), *URL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Interrupting queue at: %s"), *URL);
 }
 
 void UComfyHttpClient::GetSystemStats()
@@ -76,13 +76,13 @@ void UComfyHttpClient::GetSystemStats()
 	Request->SetVerb(TEXT("GET"));
 	Request->ProcessRequest();
 
-	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] 📤 Getting system stats from: %s"), *URL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Getting system stats from: %s"), *URL);
 }
 
 void UComfyHttpClient::SetServerURL(const FString& NewServerURL)
 {
 	ServerURL = NewServerURL;
-	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] 🔧 Server URL updated to: %s"), *ServerURL);
+	UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Server URL updated to: %s"), *ServerURL);
 }
 
 void UComfyHttpClient::OnPromptResponseReceived(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -98,7 +98,7 @@ void UComfyHttpClient::OnPromptResponseReceived(FHttpRequestPtr Request, FHttpRe
 
 	if (ResponseCode == 200)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] ✅ Prompt sent successfully. Response: %s"), *ResponseContent);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Prompt sent successfully"));
 	}
 	else
 	{
@@ -119,7 +119,7 @@ void UComfyHttpClient::OnQueueStatusResponseReceived(FHttpRequestPtr Request, FH
 
 	if (ResponseCode == 200)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] ✅ Queue status retrieved. Response: %s"), *ResponseContent);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Queue status retrieved"));
 	}
 	else
 	{
@@ -140,7 +140,7 @@ void UComfyHttpClient::OnHistoryResponseReceived(FHttpRequestPtr Request, FHttpR
 
 	if (ResponseCode == 200)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] ✅ History retrieved. Response: %s"), *ResponseContent);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] History retrieved"));
 	}
 	else
 	{
@@ -161,7 +161,7 @@ void UComfyHttpClient::OnInterruptResponseReceived(FHttpRequestPtr Request, FHtt
 
 	if (ResponseCode == 200)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] ✅ Queue interrupted successfully. Response: %s"), *ResponseContent);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] Queue interrupted successfully"));
 	}
 	else
 	{
@@ -182,7 +182,7 @@ void UComfyHttpClient::OnSystemStatsResponseReceived(FHttpRequestPtr Request, FH
 
 	if (ResponseCode == 200)
 	{
-		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] ✅ System stats retrieved. Response: %s"), *ResponseContent);
+		UE_LOG(LogTemp, Display, TEXT("[ComfyHTTP] System stats retrieved"));
 	}
 	else
 	{
@@ -204,6 +204,6 @@ FString UComfyHttpClient::BuildAPIURL(const FString& Endpoint)
 void UComfyHttpClient::HandleHttpError(const FString& Operation, const FString& ErrorMessage)
 {
 	FString FullErrorMessage = FString::Printf(TEXT("%s failed: %s"), *Operation, *ErrorMessage);
-	UE_LOG(LogTemp, Error, TEXT("[ComfyHTTP] ❌ %s"), *FullErrorMessage);
+	UE_LOG(LogTemp, Error, TEXT("[ComfyHTTP] %s"), *FullErrorMessage);
 	OnError.Broadcast(FullErrorMessage);
 }
