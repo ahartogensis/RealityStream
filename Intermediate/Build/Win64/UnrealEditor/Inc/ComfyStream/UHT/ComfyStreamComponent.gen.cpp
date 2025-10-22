@@ -654,14 +654,14 @@ UComfyStreamComponent::~UComfyStreamComponent() {}
 // ********** End Class UComfyStreamComponent ******************************************************
 
 // ********** Begin Registration *******************************************************************
-struct Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_Statics
+struct Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_Statics
 {
 	static constexpr FClassRegisterCompiledInInfo ClassInfo[] = {
 		{ Z_Construct_UClass_UComfyStreamComponent, UComfyStreamComponent::StaticClass, TEXT("UComfyStreamComponent"), &Z_Registration_Info_UClass_UComfyStreamComponent, CONSTRUCT_RELOAD_VERSION_INFO(FClassReloadVersionInfo, sizeof(UComfyStreamComponent), 2571814424U) },
 	};
 };
-static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_3234398735(TEXT("/Script/ComfyStream"),
-	Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_Statics::ClassInfo),
+static FRegisterCompiledInInfo Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_3234398735(TEXT("/Script/ComfyStream"),
+	Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_Statics::ClassInfo, UE_ARRAY_COUNT(Z_CompiledInDeferFile_FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamComponent_h__Script_ComfyStream_Statics::ClassInfo),
 	nullptr, 0,
 	nullptr, 0);
 // ********** End Registration *********************************************************************

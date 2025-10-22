@@ -1,13 +1,13 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfyui-streaming-plugin-for-unreal-main\\source\\comfystream\\private\\comfypngdecoder.cpp",
+        "Source": "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\private\\comfypngdecoder.cpp",
         "ProvidedModule": "",
         "PCH": "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\intermediate\\build\\win64\\x64\\reconstruction_3deditor\\development\\unrealed\\sharedpch.unrealed.project.valapi.valexpapi.cpp20.inclorderunreal5_3.h.pch",
         "Includes": [
-            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfyui-streaming-plugin-for-unreal-main\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\comfystream\\definitions.comfystream.h",
-            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfyui-streaming-plugin-for-unreal-main\\source\\comfystream\\public\\comfypngdecoder.h",
-            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfyui-streaming-plugin-for-unreal-main\\intermediate\\build\\win64\\unrealeditor\\inc\\comfystream\\uht\\comfypngdecoder.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\x64\\unrealeditor\\development\\comfystream\\definitions.comfystream.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfypngdecoder.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealeditor\\inc\\comfystream\\uht\\comfypngdecoder.generated.h",
             "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\imagewrapper\\public\\iimagewrapper.h",
             "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\imagewrapper\\public\\imagewrapperoutputtypes.h",
             "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\imagewrapper\\public\\iimagewrappermodule.h"

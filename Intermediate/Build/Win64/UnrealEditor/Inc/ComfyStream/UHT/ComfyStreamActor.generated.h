@@ -20,7 +20,7 @@ class UTexture2D;
 enum class EComfyChannel : uint8;
 
 // ********** Begin Class AComfyStreamActor ********************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execOnMaskError); \
 	DECLARE_FUNCTION(execOnDepthError); \
 	DECLARE_FUNCTION(execOnRGBAError); \
@@ -38,10 +38,10 @@ enum class EComfyChannel : uint8;
 	DECLARE_FUNCTION(execConnectRGBChannel);
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_CALLBACK_WRAPPERS
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_CALLBACK_WRAPPERS
 COMFYSTREAM_API UClass* Z_Construct_UClass_AComfyStreamActor_NoRegister();
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_INCLASS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesAComfyStreamActor(); \
 	friend struct Z_Construct_UClass_AComfyStreamActor_Statics; \
@@ -52,7 +52,7 @@ public: \
 	DECLARE_SERIALIZER(AComfyStreamActor)
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_ENHANCED_CONSTRUCTORS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_ENHANCED_CONSTRUCTORS \
 	/** Deleted move- and copy-constructors, should never be used */ \
 	AComfyStreamActor(AComfyStreamActor&&) = delete; \
 	AComfyStreamActor(const AComfyStreamActor&) = delete; \
@@ -62,14 +62,14 @@ public: \
 	NO_API virtual ~AComfyStreamActor();
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_13_PROLOG
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_GENERATED_BODY \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_13_PROLOG
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_CALLBACK_WRAPPERS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_INCLASS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h_16_ENHANCED_CONSTRUCTORS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_CALLBACK_WRAPPERS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_INCLASS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h_16_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -79,6 +79,6 @@ class AComfyStreamActor;
 // ********** End Class AComfyStreamActor **********************************************************
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamActor_h
+#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamActor_h
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

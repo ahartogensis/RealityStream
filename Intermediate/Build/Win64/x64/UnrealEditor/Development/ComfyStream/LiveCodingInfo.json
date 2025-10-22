@@ -9,13 +9,16 @@
 			"ComfyStreamActor.gen.cpp.obj",
 			"ComfyStreamComponent.gen.cpp.obj",
 			"ComfyStreamTypes.gen.cpp.obj",
+			"WorldExplorerSubsystem.gen.cpp.obj",
 			"PerModuleInline.gen.cpp.obj",
 			"ComfyHttpClient.cpp.obj",
 			"ComfyImageFetcher.cpp.obj",
 			"ComfyPngDecoder.cpp.obj",
 			"ComfyStream.cpp.obj",
 			"ComfyStreamActor.cpp.obj",
-			"ComfyStreamComponent.cpp.obj"
+			"ComfyStreamComponent.cpp.obj",
+			"WorldExplorerCommand.cpp.obj",
+			"WorldExplorerSubsystem.cpp.obj"
 		]
 	}
 }

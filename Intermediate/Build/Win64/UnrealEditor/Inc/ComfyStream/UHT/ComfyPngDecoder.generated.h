@@ -19,7 +19,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 class UTexture2D;
 
 // ********** Begin Class UComfyPngDecoder *********************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execIsValidJPEGData); \
 	DECLARE_FUNCTION(execIsValidPNGData); \
 	DECLARE_FUNCTION(execDecodePNGToTextureWithFormat); \
@@ -28,7 +28,7 @@ class UTexture2D;
 
 COMFYSTREAM_API UClass* Z_Construct_UClass_UComfyPngDecoder_NoRegister();
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_INCLASS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUComfyPngDecoder(); \
 	friend struct Z_Construct_UClass_UComfyPngDecoder_Statics; \
@@ -39,7 +39,7 @@ public: \
 	DECLARE_SERIALIZER(UComfyPngDecoder)
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_ENHANCED_CONSTRUCTORS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_ENHANCED_CONSTRUCTORS \
 	/** Deleted move- and copy-constructors, should never be used */ \
 	UComfyPngDecoder(UComfyPngDecoder&&) = delete; \
 	UComfyPngDecoder(const UComfyPngDecoder&) = delete; \
@@ -49,13 +49,13 @@ public: \
 	NO_API virtual ~UComfyPngDecoder();
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_11_PROLOG
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_GENERATED_BODY \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_11_PROLOG
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_INCLASS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h_14_ENHANCED_CONSTRUCTORS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_INCLASS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h_14_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -65,6 +65,6 @@ class UComfyPngDecoder;
 // ********** End Class UComfyPngDecoder ***********************************************************
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyPngDecoder_h
+#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyPngDecoder_h
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS

@@ -1,12 +1,12 @@
-"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp"
-@"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/ComfyStream.Shared.rsp"
+"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp"
+@"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/ComfyStream.Shared.rsp"
 /FI"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Intermediate/Build/Win64/x64/Reconstruction_3DEditor/Development/UnrealEd/SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_3.h"
-/FI"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Definitions.ComfyStream.h"
+/FI"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Definitions.ComfyStream.h"
 /Yu"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Intermediate/Build/Win64/x64/Reconstruction_3DEditor/Development/UnrealEd/SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_3.h"
 /Fp"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Intermediate/Build/Win64/x64/Reconstruction_3DEditor/Development/UnrealEd/SharedPCH.UnrealEd.Project.ValApi.ValExpApi.Cpp20.InclOrderUnreal5_3.h.pch"
-/Fo"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp.obj"
-/experimental:log "C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp.sarif"
-/sourceDependencies "C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyUI-streaming-plugin-for-unreal-main/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp.dep.json"
+/Fo"C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp.obj"
+/experimental:log "C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp.sarif"
+/sourceDependencies "C:/Users/alexi/OneDrive/Documents/Unreal Projects/Reconstruction_3D/Plugins/ComfyStream/Intermediate/Build/Win64/x64/UnrealEditor/Development/ComfyStream/Module.ComfyStream.cpp.dep.json"
 /d2ssa-cfg-question-
 /Zc:inline
 /nologo

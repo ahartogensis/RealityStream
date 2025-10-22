@@ -5,6 +5,15 @@
 void FComfyStreamModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file
+#if WITH_EDITOR
+	// Delay-load WorldExplorer functionality to avoid including editor headers in runtime module
+	if (GIsEditor)
+	{
+		// This will be compiled only in editor builds
+		extern void RegisterWorldExplorerMenus();
+		RegisterWorldExplorerMenus();
+	}
+#endif
 }
 
 void FComfyStreamModule::ShutdownModule()

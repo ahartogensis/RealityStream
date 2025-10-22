@@ -39,6 +39,25 @@ public class ComfyStream : ModuleRules
 			}
 		);
 		
+		// Editor-only dependencies for WorldExplorer functionality
+		if (Target.Type == TargetRules.TargetType.Editor)
+		{
+			PrivateDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"UnrealEd",
+					"EditorSubsystem",
+					"InputCore",
+					"Projects",
+					"EditorStyle",
+					"LevelEditor",
+					"AssetTools",
+					"DesktopPlatform",
+					"EditorScriptingUtilities"  // For EditorAssetLibrary
+				}
+			);
+		}
+		
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{

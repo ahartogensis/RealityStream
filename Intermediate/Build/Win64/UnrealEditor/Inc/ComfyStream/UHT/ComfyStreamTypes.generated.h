@@ -19,28 +19,28 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 class UTexture2D;
 
 // ********** Begin Delegate FOnTextureReceived ****************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamTypes_h_8_DELEGATE \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamTypes_h_8_DELEGATE \
 COMFYSTREAM_API void FOnTextureReceived_DelegateWrapper(const FMulticastScriptDelegate& OnTextureReceived, UTexture2D* Texture);
 
 
 // ********** End Delegate FOnTextureReceived ******************************************************
 
 // ********** Begin Delegate FOnConnectionStatusChanged ********************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamTypes_h_11_DELEGATE \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamTypes_h_11_DELEGATE \
 COMFYSTREAM_API void FOnConnectionStatusChanged_DelegateWrapper(const FMulticastScriptDelegate& OnConnectionStatusChanged, bool bConnected);
 
 
 // ********** End Delegate FOnConnectionStatusChanged **********************************************
 
 // ********** Begin Delegate FOnError **************************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamTypes_h_14_DELEGATE \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamTypes_h_14_DELEGATE \
 COMFYSTREAM_API void FOnError_DelegateWrapper(const FMulticastScriptDelegate& OnError, const FString& ErrorMessage);
 
 
 // ********** End Delegate FOnError ****************************************************************
 
 // ********** Begin ScriptStruct FComfyStreamConfig ************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamTypes_h_40_GENERATED_BODY \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamTypes_h_40_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FComfyStreamConfig_Statics; \
 	COMFYSTREAM_API static class UScriptStruct* StaticStruct();
 
@@ -49,7 +49,7 @@ struct FComfyStreamConfig;
 // ********** End ScriptStruct FComfyStreamConfig **************************************************
 
 // ********** Begin ScriptStruct FComfyLerpState ***************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamTypes_h_96_GENERATED_BODY \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamTypes_h_96_GENERATED_BODY \
 	friend struct Z_Construct_UScriptStruct_FComfyLerpState_Statics; \
 	COMFYSTREAM_API static class UScriptStruct* StaticStruct();
 
@@ -58,7 +58,7 @@ struct FComfyLerpState;
 // ********** End ScriptStruct FComfyLerpState *****************************************************
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyStreamTypes_h
+#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyStreamTypes_h
 
 // ********** Begin Enum EComfyChannel *************************************************************
 #define FOREACH_ENUM_ECOMFYCHANNEL(op) \

@@ -17,7 +17,7 @@
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 // ********** Begin Class UComfyImageFetcher *******************************************************
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_RPC_WRAPPERS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_RPC_WRAPPERS_NO_PURE_DECLS \
 	DECLARE_FUNCTION(execTestServerConnection); \
 	DECLARE_FUNCTION(execIsPolling); \
 	DECLARE_FUNCTION(execStopPolling); \
@@ -26,7 +26,7 @@ PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
 COMFYSTREAM_API UClass* Z_Construct_UClass_UComfyImageFetcher_NoRegister();
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_INCLASS_NO_PURE_DECLS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_INCLASS_NO_PURE_DECLS \
 private: \
 	static void StaticRegisterNativesUComfyImageFetcher(); \
 	friend struct Z_Construct_UClass_UComfyImageFetcher_Statics; \
@@ -37,7 +37,7 @@ public: \
 	DECLARE_SERIALIZER(UComfyImageFetcher)
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_ENHANCED_CONSTRUCTORS \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_ENHANCED_CONSTRUCTORS \
 	/** Deleted move- and copy-constructors, should never be used */ \
 	UComfyImageFetcher(UComfyImageFetcher&&) = delete; \
 	UComfyImageFetcher(const UComfyImageFetcher&) = delete; \
@@ -47,13 +47,13 @@ public: \
 	NO_API virtual ~UComfyImageFetcher();
 
 
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_17_PROLOG
-#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_GENERATED_BODY \
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_17_PROLOG
+#define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_GENERATED_BODY \
 PRAGMA_DISABLE_DEPRECATION_WARNINGS \
 public: \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_RPC_WRAPPERS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_INCLASS_NO_PURE_DECLS \
-	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h_20_ENHANCED_CONSTRUCTORS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_RPC_WRAPPERS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_INCLASS_NO_PURE_DECLS \
+	FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h_20_ENHANCED_CONSTRUCTORS \
 private: \
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
 
@@ -63,6 +63,6 @@ class UComfyImageFetcher;
 // ********** End Class UComfyImageFetcher *********************************************************
 
 #undef CURRENT_FILE_ID
-#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyUI_streaming_plugin_for_unreal_main_Source_ComfyStream_Public_ComfyImageFetcher_h
+#define CURRENT_FILE_ID FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_ComfyImageFetcher_h
 
 PRAGMA_ENABLE_DEPRECATION_WARNINGS
