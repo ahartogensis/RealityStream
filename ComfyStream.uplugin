@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "ComfyStream",
+	"Description": "Plugin for receiving ComfyUI websocket streams, creating dynamic materials, and generating Gaussian Splats from video using WorldExplorer",
+	"Category": "Media",
+	"CreatedBy": "Alexia Hartogensis",
+	"CreatedByURL": "https://alexiahartogensis.com",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ComfyStream",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
+		}
+	]
+}
