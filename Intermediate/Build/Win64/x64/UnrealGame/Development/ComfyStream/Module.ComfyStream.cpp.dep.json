@@ -1,0 +1,40 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\x64\\unrealgame\\development\\comfystream\\module.comfystream.cpp",
+        "ProvidedModule": "",
+        "PCH": "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\intermediate\\build\\win64\\x64\\reconstruction_3d\\development\\engine\\sharedpch.engine.project.valapi.valexpapi.cpp20.inclorderunreal5_3.h.pch",
+        "Includes": [
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\x64\\unrealgame\\development\\comfystream\\definitions.comfystream.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfyhttpclient.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfyhttpclient.h",
+            "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\online\\http\\public\\interfaces\\ihttprequest.h",
+            "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\online\\http\\public\\interfaces\\ihttpbase.h",
+            "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\online\\http\\public\\interfaces\\ihttpresponse.h",
+            "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\online\\http\\public\\interfaces\\ihttpresponsecodes.inl",
+            "c:\\program files\\epic games\\ue_5.6\\engine\\source\\runtime\\online\\http\\public\\interfaces\\ihttpresponsecodes.inl",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfystreamtypes.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystreamtypes.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfyhttpclient.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfyimagefetcher.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfyimagefetcher.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfyimagefetcher.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfypngdecoder.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfypngdecoder.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfypngdecoder.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystream.init.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystreamactor.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfystreamactor.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\comfystreamcomponent.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystreamcomponent.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystreamactor.generated.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystreamcomponent.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\comfystreamtypes.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\worldexplorersubsystem.gen.cpp",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\source\\comfystream\\public\\worldexplorersubsystem.h",
+            "c:\\users\\alexi\\onedrive\\documents\\unreal projects\\reconstruction_3d\\plugins\\comfystream\\intermediate\\build\\win64\\unrealgame\\inc\\comfystream\\uht\\worldexplorersubsystem.generated.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

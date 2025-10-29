@@ -18,29 +18,19 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	// WorldExplorer functionality - Blueprint callable for runtime use
-	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
-	void ImportExistingSplat();
-
-	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
-	void RunGaussianSplat();
-
+	// Only Blueprint-callable function - handles everything automatically
 	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
 	void CheckAndImportSplat(const FString& VideoPath = TEXT(""));
 
-	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
-	void ConvertPLYToOBJ(const FString& PLYPath, const FString& OBJPath);
-
-	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
-	AActor* ImportAndSpawnOBJMesh(const FString& OBJPath, FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator(90, 0, 0), FVector SpawnScale = FVector(400.0f, 400.0f, 400.0f));
-
-	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
-	void ConvertAndSpawnPLY(const FString& PLYPath, FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator(90, 0, 0), FVector SpawnScale = FVector(400.0f, 400.0f, 400.0f));
-
-	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
-	void ProcessVideoToMesh(const FString& VideoPath);
-
 private:
+	// Internal helper functions (not exposed to Blueprint)
+	void ImportExistingSplat();
+	void RunGaussianSplat();
+	void ProcessVideoToMesh(const FString& VideoPath);
+	void ConvertPLYToOBJ(const FString& PLYPath, const FString& OBJPath);
+	AActor* ImportAndSpawnOBJMesh(const FString& OBJPath, FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator(90, 0, 0), FVector SpawnScale = FVector(400.0f, 400.0f, 400.0f));
+	void ConvertAndSpawnPLY(const FString& PLYPath, FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator(90, 0, 0), FVector SpawnScale = FVector(400.0f, 400.0f, 400.0f));
+	
 	// Helper functions
 	FString GetProjectDirectory();
 	FString GetPlyOutputDirectory();
@@ -52,4 +42,8 @@ private:
 	// Runtime mesh import helpers
 	class UProceduralMeshComponent* CreateProceduralMeshFromOBJ(const FString& OBJPath, AActor* Owner);
 	bool ParseOBJFile(const FString& OBJPath, TArray<FVector>& OutVertices, TArray<int32>& OutTriangles, TArray<FVector>& OutNormals, TArray<FColor>& OutVertexColors);
+	
+	// Auto-spawn polling
+	FTimerHandle AutoSpawnTimerHandle;
+	void CheckAndAutoSpawnMesh();
 };

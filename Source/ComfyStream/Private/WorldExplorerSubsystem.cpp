@@ -266,56 +266,92 @@ void UWorldExplorerSubsystem::ProcessVideoToMesh(const FString& VideoPath)
 	FString ProjectDir = GetProjectDirectory();
 	FString DataDir = GetDataDirectory();
 	FString OutputDir = GetPlyOutputDirectory();
-	FString VideoDestPath = DataDir / TEXT("input_video.mp4");
+	
+	// Determine destination filename (keep original extension)
+	FString Extension = FPaths::GetExtension(VideoPath).ToLower();
+	FString VideoDestPath = DataDir / FString::Printf(TEXT("input_video.%s"), *Extension);
 	
 	// Create directories if they don't exist
 	IFileManager::Get().MakeDirectory(*DataDir, true);
 	IFileManager::Get().MakeDirectory(*OutputDir, true);
 	
-	// Copy video to data directory
-	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Copying video to: %s"), *VideoDestPath);
-	if (!IFileManager::Get().Copy(*VideoDestPath, *VideoPath, true, true))
+	// Check if video is already in the correct location
+	FString NormalizedSource = FPaths::ConvertRelativePathToFull(VideoPath);
+	FString NormalizedDest = FPaths::ConvertRelativePathToFull(VideoDestPath);
+	NormalizedSource.ReplaceInline(TEXT("\\"), TEXT("/"));
+	NormalizedDest.ReplaceInline(TEXT("\\"), TEXT("/"));
+	
+	bool bAlreadyInPlace = NormalizedSource.Equals(NormalizedDest, ESearchCase::IgnoreCase) || FPaths::FileExists(VideoDestPath);
+	
+	if (bAlreadyInPlace && FPaths::FileExists(VideoDestPath))
 	{
-		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Failed to copy video file"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Video already in correct location: %s"), *VideoDestPath);
+	}
+	else
+	{
+		// Only copy if source and destination are different
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Copying video from: %s"), *VideoPath);
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer]                   to: %s"), *VideoDestPath);
+		
+		// Try to copy WITHOUT deleting first - Unreal's Copy should overwrite
+		if (!IFileManager::Get().Copy(*VideoDestPath, *VideoPath, true, true))
+		{
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] ❌ FAILED to copy video file!"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Source exists: %s"), FPaths::FileExists(VideoPath) ? TEXT("YES") : TEXT("NO"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Source: %s"), *VideoPath);
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Destination: %s"), *VideoDestPath);
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Make sure the video file is not locked by another program"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Or manually copy the video to WorldExplorerData/ and rename to input_video.%s"), *Extension);
+			return;
+		}
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Video copied successfully"));
+	}
+	
+	// Verify the video file exists before proceeding
+	if (!FPaths::FileExists(VideoDestPath))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] ❌ CRITICAL: Video file does not exist at destination!"));
+		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Expected location: %s"), *VideoDestPath);
 		return;
 	}
 	
-	// Run Docker reconstruction pipeline
+	// Run Docker reconstruction pipeline (ASYNCHRONOUS - runs in background)
 	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Starting reconstruction..."));
-	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] This will take 5-10 minutes - extracting frames, running COLMAP, generating mesh..."));
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] A terminal window will open showing live progress"));
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] This will take 6-8 minutes - Unreal will stay responsive!"));
 	
 	bool bSuccess = RunDockerReconstructionPipeline(VideoPath);
 	
-	if (!bSuccess)
+	if (bSuccess)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Docker reconstruction failed"));
-		return;
-	}
-	
-	// Check if OBJ was created
-	FString OBJPath = OutputDir / TEXT("point_cloud.obj");
-	if (FPaths::FileExists(OBJPath))
-	{
-		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Reconstruction complete! Spawning mesh..."));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Reconstruction running in background terminal"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Watch the terminal window for live progress!"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] "));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Mesh will AUTO-SPAWN when reconstruction completes"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Checking for completion every 10 seconds..."));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] "));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Output files will be in:"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer]   %s"), *OutputDir);
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
 		
-		// Wait for file to be fully written
-		FPlatformProcess::Sleep(1.0f);
-		
-		// Spawn at origin with scale and rotation
-		FVector SpawnLocation = FVector(0, 0, -400);
-		FRotator SpawnRotation = FRotator(90, 0, 0);
-		FVector SpawnScale = FVector(500.0f, 500.0f, 500.0f);
-		
-		AActor* SpawnedActor = ImportAndSpawnOBJMesh(OBJPath, SpawnLocation, SpawnRotation, SpawnScale);
-		
-		if (SpawnedActor)
+		// Start polling timer to auto-spawn when complete
+		UWorld* World = GetWorld();
+		if (World)
 		{
-			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓✓✓ SUCCESS! Mesh spawned in scene ✓✓✓"));
+			World->GetTimerManager().SetTimer(
+				AutoSpawnTimerHandle,
+				this,
+				&UWorldExplorerSubsystem::CheckAndAutoSpawnMesh,
+				10.0f,  // Check every 10 seconds
+				true    // Loop
+			);
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] OBJ file not created: %s"), *OBJPath);
+		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Failed to start Docker reconstruction"));
 	}
 }
 
@@ -325,59 +361,160 @@ bool UWorldExplorerSubsystem::RunDockerReconstructionPipeline(const FString& Vid
 	FString DataDir = GetDataDirectory();
 	FString OutputDir = GetPlyOutputDirectory();
 	
-	// Build Docker command to run the complete pipeline
+	// Build Docker command to match exactly what worked manually
+	// Using bash -lc for login shell to ensure proper environment
 	FString DockerCommand = FString::Printf(
-		TEXT("\"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe\" run --rm --gpus all ")
+		TEXT("docker run --rm --gpus all ")
 		TEXT("-v \"%s:/workspace/data\" ")
 		TEXT("-v \"%s:/workspace/outputs\" ")
 		TEXT("-v \"%s:/workspace/project\" ")
-		TEXT("gaussian-splatting:optimized bash -c \"")
-		// Step 1: Extract frames at 10 fps for optimal quality
-		TEXT("echo '=== Extracting frames at 10 fps for maximum quality ===' && ")
+		TEXT("gaussian-splatting:optimized bash -lc \"")
+		// Step 1: Clean up old data (preserve input video)
 		TEXT("rm -rf /workspace/data/input /workspace/data/sparse /workspace/data/distorted /workspace/data/temp /workspace/data/database.db || true && ")
+		// Step 2: Extract frames at 10 fps for optimal quality (use -y to overwrite)
 		TEXT("mkdir -p /workspace/data/input && ")
-		TEXT("ffmpeg -i /workspace/data/input_video.mp4 -qscale:v 1 -qmin 1 -vf fps=10 /workspace/data/input/frame_%%04d.jpg && ")
-		// Step 2: Run COLMAP reconstruction
-		TEXT("echo '=== Running COLMAP sparse reconstruction ===' && ")
+		TEXT("ffmpeg -y -i /workspace/data/input_video.* -qscale:v 1 -qmin 1 -vf fps=10 /workspace/data/input/frame_%%04d.jpg && ")
+		// Step 3: Run COLMAP sparse reconstruction
 		TEXT("python3 /workspace/gaussian-splatting/convert.py -s /workspace/data && ")
-		// Step 3: Export to PLY
-		TEXT("echo '=== Exporting point cloud to PLY ===' && ")
+		// Step 4: Export sparse reconstruction to PLY
 		TEXT("colmap model_converter --input_path /workspace/data/sparse/0 --output_path /workspace/outputs/point_cloud.ply --output_type PLY && ")
-		// Step 4: Convert PLY to OBJ with maximum quality remeshing
-		TEXT("echo '=== Converting to OBJ with MAXIMUM quality remeshing ===' && ")
+		// Step 5: Convert PLY to OBJ with maximum quality remeshing
 		TEXT("python3 /workspace/project/Plugins/ComfyStream/convert_gaussian_ply.py /workspace/outputs/point_cloud.ply /workspace/outputs/point_cloud.obj && ")
-		TEXT("echo '=== ✓ Pipeline complete! ===' && ")
+		// Step 6: Clean up temporary reconstruction files (keep input video and final outputs)
+		TEXT("echo '=== Cleaning up temporary files... ===' && ")
+		TEXT("rm -rf /workspace/data/input /workspace/data/sparse /workspace/data/distorted /workspace/data/temp /workspace/data/database.db || true && ")
+		TEXT("echo '=== Cleanup complete! OBJ ready for import. ===' && ")
 		TEXT("ls -lh /workspace/outputs/point_cloud.obj\""),
 		*DataDir,
 		*OutputDir,
 		*ProjectDir
 	);
 	
-	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Executing Docker reconstruction pipeline..."));
-	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Command: %s"), *DockerCommand);
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Launching Docker in NEW TERMINAL WINDOW"));
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Unreal will continue running!"));
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
 	
-	int32 ReturnCode = 0;
-	FString Output;
-	FString Errors;
+    // Create simple batch file that runs the exact Docker command (same format that worked manually)
+    FString BatchPath = DataDir / TEXT("run_reconstruction.bat");
+    
+    // Escape % characters for batch file (batch interprets % as variable expansion)
+    // In batch files, to get a literal % you need %%
+    // The DockerCommand string has %04d which needs to become %%04d in the batch file
+    FString DockerCmdForBatch = DockerCommand;
+    // Simply replace %04d with %%04d (this is the only % pattern we use in ffmpeg)
+    DockerCmdForBatch.ReplaceInline(TEXT("%04d"), TEXT("%%04d"));
+    
+    FString BatchContent =
+        TEXT("@echo off\r\n")
+        TEXT("setlocal enabledelayedexpansion\r\n")
+        TEXT("title WorldExplorer Reconstruction\r\n")
+        TEXT("cd /d \"%~dp0\"\r\n")
+        TEXT("echo ========================================\r\n")
+        TEXT("echo   WorldExplorer Reconstruction Pipeline\r\n")
+        TEXT("echo ========================================\r\n")
+        TEXT("echo Starting at %DATE% %TIME%\r\n")
+        TEXT("echo This will take 6-8 minutes\r\n")
+        TEXT("echo DO NOT CLOSE this window!\r\n")
+        TEXT("echo ========================================\r\n")
+        TEXT("echo.\r\n")
+        // Run Docker command with properly escaped % characters
+        TEXT("") + DockerCmdForBatch + TEXT("\r\n")
+        TEXT("set EXITCODE=!ERRORLEVEL!\r\n")
+        TEXT("echo.\r\n")
+        TEXT("echo ========================================\r\n")
+        TEXT("if not !EXITCODE!==0 (\r\n")
+        TEXT("  echo ERROR: Docker command failed (code !EXITCODE!)\r\n")
+        TEXT("  echo - Ensure Docker Desktop is running\r\n")
+        TEXT("  echo - Ensure GPU is available to Docker\r\n")
+        TEXT(") else (\r\n")
+        TEXT("  echo RECONSTRUCTION COMPLETE!\r\n")
+        TEXT("  echo Mesh will auto-spawn in Unreal Engine!\r\n")
+        TEXT(")\r\n")
+        TEXT("echo ========================================\r\n")
+        TEXT("pause\r\n");
 	
-	bool bSuccess = FPlatformProcess::ExecProcess(
-		*DockerCommand,
-		TEXT(""),
-		&ReturnCode,
-		&Output,
-		&Errors,
-		*ProjectDir
-	);
-	
-	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Docker execution result: %d"), ReturnCode);
-	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Docker output: %s"), *Output);
-	
-	if (!Errors.IsEmpty())
+	// Write batch file
+	if (!FFileHelper::SaveStringToFile(BatchContent, *BatchPath))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[WorldExplorer] Docker errors: %s"), *Errors);
+		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Failed to create batch file: %s"), *BatchPath);
+		return false;
 	}
 	
-	return bSuccess && ReturnCode == 0;
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Created batch file: %s"), *BatchPath);
+	
+	// Verify batch file was created
+	if (!FPaths::FileExists(BatchPath))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] ❌ Batch file was not created! Path: %s"), *BatchPath);
+		return false;
+	}
+	
+	// Use ShellExecute approach - more reliable on Windows
+	FString BatchPathForShell = BatchPath;
+	BatchPathForShell.ReplaceInline(TEXT("/"), TEXT("\\")); // Use Windows path separators
+	
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Attempting to launch terminal window..."));
+	UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Batch file: %s"), *BatchPath);
+	
+    // Method 1: Use START to run the batch directly (pause inside batch keeps window open)
+    FString StartArgs = FString::Printf(TEXT("\"WorldExplorer Reconstruction\" \"%s\""), *BatchPath);
+
+    FProcHandle ProcHandle = FPlatformProcess::CreateProc(
+        TEXT("cmd.exe"),
+        *FString::Printf(TEXT("/c start %s"), *StartArgs),
+        true,
+        false,
+        false,
+        nullptr,
+        0,
+        *DataDir,
+        nullptr
+    );
+	
+	if (!ProcHandle.IsValid())
+	{
+		// Method 2: Try alternative approach - launch cmd /k directly with batch file
+		UE_LOG(LogTemp, Warning, TEXT("[WorldExplorer] First launch method failed, trying alternative..."));
+		
+        FProcHandle ProcHandle2 = FPlatformProcess::CreateProc(
+            *BatchPath,
+            TEXT(""),
+            true,
+            false,
+            false,
+            nullptr,
+            0,
+            *DataDir,
+            nullptr
+        );
+		
+		if (ProcHandle2.IsValid())
+		{
+			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Terminal window launched (method 2)!"));
+			FPlatformProcess::CloseProc(ProcHandle2);
+			return true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] ❌ Both launch methods failed!"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Batch file exists: %s"), FPaths::FileExists(BatchPath) ? TEXT("YES") : TEXT("NO"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] Batch file path: %s"), *BatchPath);
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] "));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] MANUAL INSTRUCTIONS:"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] 1. Open Command Prompt"));
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] 2. Navigate to: %s"), *ProjectDir);
+			UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] 3. Run: \"%s\""), *BatchPath);
+			return false;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓ Terminal window launched successfully!"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Look for window titled: 'WorldExplorer Reconstruction'"));
+		FPlatformProcess::CloseProc(ProcHandle);
+		return true;
+	}
 }
 
 bool UWorldExplorerSubsystem::ExecutePythonScript(const FString& ScriptPath, const FString& InputPath, const FString& OutputPath)
@@ -767,5 +904,83 @@ void UWorldExplorerSubsystem::ConvertAndSpawnPLY(const FString& PLYPath, FVector
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("[WorldExplorer] OBJ file was not created: %s"), *OBJPath);
+	}
+}
+
+void UWorldExplorerSubsystem::CheckAndAutoSpawnMesh()
+{
+	FString OBJPath = GetPlyOutputDirectory() / TEXT("point_cloud.obj");
+	
+	// Check if OBJ file exists and has been fully written (check file size stability)
+	if (FPaths::FileExists(OBJPath))
+	{
+		// File exists! Stop the timer
+		UWorld* World = GetWorld();
+		if (World && AutoSpawnTimerHandle.IsValid())
+		{
+			World->GetTimerManager().ClearTimer(AutoSpawnTimerHandle);
+		}
+		
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓✓✓ RECONSTRUCTION COMPLETE! ✓✓✓"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Auto-spawning mesh in scene..."));
+		
+		// Wait a moment to ensure file is fully written
+		FPlatformProcess::Sleep(2.0f);
+		
+		// Spawn at origin with scale and rotation
+		FVector SpawnLocation = FVector(0, 0, -300);
+		FRotator SpawnRotation = FRotator(90, 0, 0);
+		FVector SpawnScale = FVector(500.0f, 500.0f, 500.0f);
+		
+		AActor* SpawnedActor = ImportAndSpawnOBJMesh(OBJPath, SpawnLocation, SpawnRotation, SpawnScale);
+		
+		if (SpawnedActor)
+		{
+			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ✓✓✓ SUCCESS! Mesh automatically spawned in scene! ✓✓✓"));
+			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Actor name: %s"), *SpawnedActor->GetName());
+			
+			// Clean up temporary reconstruction files to free space for multiple splats
+			FString DataDir = GetDataDirectory();
+			TArray<FString> TempDirs = {
+				DataDir / TEXT("input"),
+				DataDir / TEXT("sparse"),
+				DataDir / TEXT("distorted"),
+				DataDir / TEXT("temp")
+			};
+			TArray<FString> TempFiles = {
+				DataDir / TEXT("database.db")
+			};
+			
+			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Cleaning up temporary reconstruction files..."));
+			for (const FString& Dir : TempDirs)
+			{
+				if (FPaths::DirectoryExists(Dir))
+				{
+					IFileManager::Get().DeleteDirectory(*Dir, false, true);
+					UE_LOG(LogTemp, Display, TEXT("[WorldExplorer]   Deleted: %s"), *Dir);
+				}
+			}
+			for (const FString& File : TempFiles)
+			{
+				if (FPaths::FileExists(File))
+				{
+					IFileManager::Get().Delete(*File);
+					UE_LOG(LogTemp, Display, TEXT("[WorldExplorer]   Deleted: %s"), *File);
+				}
+			}
+			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] Cleanup complete! Ready for next reconstruction."));
+			UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] ========================================"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[WorldExplorer] Mesh file created but failed to spawn. Try manually calling ImportExistingSplat()"));
+		}
+	}
+	else
+	{
+		// Still waiting...
+		UE_LOG(LogTemp, Display, TEXT("[WorldExplorer] [Polling] Waiting for reconstruction to complete..."));
 	}
 }

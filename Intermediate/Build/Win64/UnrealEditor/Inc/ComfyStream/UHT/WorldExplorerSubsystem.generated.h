@@ -16,17 +16,9 @@
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
 
-class AActor;
-
 // ********** Begin Class UWorldExplorerSubsystem **************************************************
 #define FID_Users_alexi_OneDrive_Documents_Unreal_Projects_Reconstruction_3D_Plugins_ComfyStream_Source_ComfyStream_Public_WorldExplorerSubsystem_h_14_RPC_WRAPPERS_NO_PURE_DECLS \
-	DECLARE_FUNCTION(execProcessVideoToMesh); \
-	DECLARE_FUNCTION(execConvertAndSpawnPLY); \
-	DECLARE_FUNCTION(execImportAndSpawnOBJMesh); \
-	DECLARE_FUNCTION(execConvertPLYToOBJ); \
-	DECLARE_FUNCTION(execCheckAndImportSplat); \
-	DECLARE_FUNCTION(execRunGaussianSplat); \
-	DECLARE_FUNCTION(execImportExistingSplat);
+	DECLARE_FUNCTION(execCheckAndImportSplat);
 
 
 COMFYSTREAM_API UClass* Z_Construct_UClass_UWorldExplorerSubsystem_NoRegister();
