@@ -7,18 +7,16 @@ My goal for this project is to build a pipeline that uses Computer Vision and AI
 The workflow I’ve developed can take footage, real-time or recorded, and automatically convert it into a 3D environment, removing the hassle of manually rebuilding scenes in 3D software.
 In other words, I’m using AI to automate the reconstruction process, creating a bridge between linear media and interactive worlds.
 
+---
 
-| Feature | Description |
+## Features
+
 **Live streamed RGB/Depth/Mask** | WebSockets from ComfyUI  
 **Material auto-update** | Textures applied live to your Unreal material  
 **Lerp smoothing** | Frame-to-frame blending  
 **Procedural Splat Import** | Converts Gaussian Splats to Mesh at runtime  
 **Video → PLY → OBJ** | Full pipeline inside Unreal (Docker optional)  
 **Blueprint friendly** | No C++ required  
-
----
-
-## Features
 
 ### ComfyStream
 - Real-time WebSocket stream from ComfyUI
