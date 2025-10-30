@@ -84,6 +84,7 @@ UComfyStreamComponent* Comfy = CreateDefaultSubobject<UComfyStreamComponent>("Co
 Comfy->StreamConfig.ServerURL = TEXT("ws://localhost:8188");
 Comfy->StreamConfig.bEnableLerpSmoothing = true;
 Comfy->Connect();
+```
 
 ## Data Flow Overview 
 Camera → ComfyUI → PNG stream → Unreal Material  
