@@ -7,12 +7,12 @@ public class ComfyStream : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		PublicIncludePaths.AddRange(
-			new string[] {
+			new string[] {"ComfyStream/Public"
 			}
 		);
 		
 		PrivateIncludePaths.AddRange(
-			new string[] {
+			new string[] {"ComfyStream/Private"
 			}
 		);
 		
@@ -23,8 +23,6 @@ public class ComfyStream : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"ImageWrapper",
-				"HTTP",
-				"Json",
 				"WebSockets",
 				"ProceduralMeshComponent"
 			}

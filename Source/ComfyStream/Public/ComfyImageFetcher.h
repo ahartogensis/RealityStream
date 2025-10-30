@@ -1,19 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "UObject/Object.h"
 #include "ComfyStreamTypes.h"
+#include "ComfyImageFetcher.generated.h"
 
-// Forward declaration
 class UComfyPngDecoder;
 class IWebSocket;
 
-#include "ComfyImageFetcher.generated.h"
-
-/**
- * WebSocket-based image fetcher for ComfyUI
- * Connects to ComfyUI WebViewer server on port 8001
- */
+//Handles connection between ComfyUI and Unreal Engine 5.6 thourgh websockets
 UCLASS()
 class COMFYSTREAM_API UComfyImageFetcher : public UObject
 {
@@ -22,7 +16,6 @@ class COMFYSTREAM_API UComfyImageFetcher : public UObject
 public:
 	UComfyImageFetcher();
 
-	// Events
 	UPROPERTY(BlueprintAssignable)
 	FOnTextureReceived OnTextureReceived;
 
@@ -32,51 +25,45 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnError OnError;
 
-	// Connection functions
-	UFUNCTION(BlueprintCallable, Category = "ComfyImageFetcher")
+	UFUNCTION(BlueprintCallable)
 	void StartPolling(const FString& ServerURL, int32 ChannelNumber = 1);
 
-	UFUNCTION(BlueprintCallable, Category = "ComfyImageFetcher")
+	UFUNCTION(BlueprintCallable)
 	void StopPolling();
 
-	UFUNCTION(BlueprintCallable, Category = "ComfyImageFetcher")
+	UFUNCTION(BlueprintCallable)
 	bool IsPolling() const;
-	
-	// WebSocket port (ComfyUI WebViewer uses 8001 by default)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyImageFetcher")
+
+	//default websocket port is 8001 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 WebSocketPort = 8001;
 
-	// Configuration
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyImageFetcher")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FComfyStreamConfig Config;
 
-	// Test function to verify server connection
-	UFUNCTION(BlueprintCallable, Category = "ComfyImageFetcher")
-	void TestServerConnection(const FString& ServerURL);
-
 private:
-	// PNG decoder
-	UPROPERTY()
-	UComfyPngDecoder* PngDecoder;
+	//Decodes png files 
+	UPROPERTY() UComfyPngDecoder* PngDecoder = nullptr;
 
-	// Connection status
-	EComfyConnectionStatus ConnectionStatus = EComfyConnectionStatus::Disconnected;
-
-	// WebSocket connection
+	//Websocket instance on channel 1 
 	TSharedPtr<IWebSocket> WebSocket;
 	bool bIsPolling = false;
-	FString CurrentServerURL;
 	int32 CurrentChannel = 1;
+	FString CurrentServerURL;
 
-	// WebSocket event handlers
+	//Preventing cross stream image corruption by creating member 
+	//variables for chunked image reception
+	TArray<uint8> ChunkBuffer;
+	bool bReceivingChunks = false;
+
+	//WebSocket events
 	void OnWebSocketConnected();
 	void OnWebSocketConnectionError(const FString& Error);
 	void OnWebSocketClosed(int32 StatusCode, const FString& Reason, bool bWasClean);
 	void OnWebSocketMessage(const void* Data, SIZE_T Size, SIZE_T BytesRemaining);
 	void OnWebSocketMessageSent(const FString& MessageString);
 
-	// Internal functions
+	void ProcessImageData(const TArray<uint8>& Data);
 	void SetConnectionStatus(EComfyConnectionStatus NewStatus);
 	FString BuildWebSocketURL(const FString& ServerURL, int32 ChannelNumber);
-	void ProcessImageData(const TArray<uint8>& Data);
 };

@@ -9,11 +9,8 @@
 class UComfyImageFetcher;
 class UComfyPngDecoder;
 
-/**
- * Component for receiving ComfyUI websocket streams and creating dynamic materials
- * This component can handle multiple channels (depth, RGBA, etc.) and automatically
- * updates material parameters when new textures are received.
- */
+//Connects to one ComfyUI websocket channel and sets up texture broadcasting 
+//pairs textures as they arrive 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class COMFYSTREAM_API UComfyStreamComponent : public UActorComponent
 {
@@ -25,10 +22,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float Delta, ELevelTick, FActorComponentTickFunction*) override;
 
 public:
-	// Events
+	//Events
 	UPROPERTY(BlueprintAssignable, Category = "ComfyStream")
 	FOnTextureReceived OnTextureReceived;
 
@@ -38,80 +35,45 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "ComfyStream")
 	FOnError OnError;
 
-	// Configuration (internal use, set by ComfyStreamActor)
+	//before BeginPlay, connect configs 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ComfyStream")
 	FComfyStreamConfig StreamConfig;
 
-	// Parameter names for the material (internal use, set by ComfyStreamActor)
-	FName DepthMapParameterName = TEXT("Depth_Map");
-	FName RGBMapParameterName = TEXT("RGB_Map");
-	FName MaskMapParameterName = TEXT("Mask_Map");
-
-	// Base material reference (set internally by ComfyStreamActor)
+	//Optional base material to apply the received texture to 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ComfyStream")
 	UMaterialInterface* BaseMaterial;
 
-	// Blueprint functions
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	void Connect();
+	//Intrinsics knobs for DepthAnything webcam
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Reconstruction")
+	float FocalScale = 1.2f; 
 
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	void Disconnect();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Reconstruction")
+	float DepthScaleUnits = 500.0f;
 
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	bool IsConnected() const;
-
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	EComfyConnectionStatus GetConnectionStatus() const;
-
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	UMaterialInstanceDynamic* GetDynamicMaterial() const { return DynamicMaterial; }
-
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	void SetChannelNumber(int32 NewChannelNumber);
-
-	UFUNCTION(BlueprintCallable, Category = "ComfyStream")
-	void SetServerURL(const FString& NewServerURL);
-
-	// Internal functions
-	UFUNCTION()
-	void OnTextureReceivedInternal(UTexture2D* Texture);
-	
-	UFUNCTION()
-	void OnConnectionStatusChangedInternal(bool bConnected);
-	
-	UFUNCTION()
-	void OnErrorInternal(const FString& ErrorMessage);
+	//Connection control
+	UFUNCTION(BlueprintCallable) void Connect();
+	UFUNCTION(BlueprintCallable) void Disconnect();
+	UFUNCTION(BlueprintCallable) bool IsConnected() const;
+	UFUNCTION(BlueprintCallable) EComfyConnectionStatus GetConnectionStatus() const;
 
 private:
-	// Image fetcher (HTTP-based alternative to WebSocket)
-	UPROPERTY()
-	UComfyImageFetcher* ImageFetcher;
+	UPROPERTY() UComfyImageFetcher* ImageFetcher = nullptr;
+	UPROPERTY() UComfyPngDecoder*   PngDecoder   = nullptr;
 
-	// PNG decoder
-	UPROPERTY()
-	UComfyPngDecoder* PngDecoder;
-
-	// Dynamic material instance
-	UPROPERTY()
-	UMaterialInstanceDynamic* DynamicMaterial;
-
-	// Connection status
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ComfyStream", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="ComfyStream", meta=(AllowPrivateAccess="true"))
 	EComfyConnectionStatus ConnectionStatus = EComfyConnectionStatus::Disconnected;
 
-	// Timer for keep-alive pings
-	FTimerHandle PingTimer;
-
-	// Timer for reconnection attempts
 	FTimerHandle ReconnectTimer;
 
-	// Lerp state for smooth texture transitions
-	FComfyLerpState LerpState;
+	UFUNCTION() void OnTextureReceivedInternal(UTexture2D* Texture);
+	UFUNCTION() void OnConnectionStatusChangedInternal(bool bConnected);
+	UFUNCTION() void OnErrorInternal(const FString& ErrorMessage);
 
-	// Internal functions
-	void CreateDynamicMaterial();
-	void StartPingTimer();
-	void StopPingTimer();
-	void SendPing();
 	void AttemptReconnect();
 	void UpdateLerpTransition(float DeltaTime);
+
+	//Per-channel lerp states
+	FComfyLerpState RGBLerpState;
+	FComfyLerpState DepthLerpState;
+	FComfyLerpState MaskLerpState;
 };

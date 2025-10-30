@@ -5,7 +5,7 @@
 
 UComfyImageFetcher::UComfyImageFetcher()
 {
-	// Initialize default configuration
+	//Initialize default configuration
 	Config = FComfyStreamConfig();
 	PngDecoder = nullptr;
 	ConnectionStatus = EComfyConnectionStatus::Disconnected;
@@ -141,11 +141,11 @@ void UComfyImageFetcher::OnWebSocketMessage(const void* Data, SIZE_T Size, SIZE_
 		MessageBuffer.Empty();
 	}
 
-	// Append data to buffer
+	//Append data to buffer
 	const uint8* ByteData = static_cast<const uint8*>(Data);
 	MessageBuffer.Append(ByteData, Size);
 
-	// Check if we have more chunks coming
+	//Check if we have more chunks coming
 	if (BytesRemaining > 0)
 	{
 		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher][Ch%d] Buffered %llu bytes, waiting for %llu more..."), CurrentChannel, Size, BytesRemaining);
@@ -153,14 +153,14 @@ void UComfyImageFetcher::OnWebSocketMessage(const void* Data, SIZE_T Size, SIZE_
 		return;
 	}
 
-	// All chunks received, process the complete image
+	//All chunks received, process the complete image
 	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher][Ch%d] Complete message received: %d bytes total"), 
 		CurrentChannel, MessageBuffer.Num());
 	
-	// Process the complete image data
+	//Process the complete image data
 	ProcessImageData(MessageBuffer);
 	
-	// Clear buffer for next message
+	//Clear buffer for next message
 	MessageBuffer.Empty();
 	bReceivingChunks = false;
 }
@@ -172,20 +172,20 @@ void UComfyImageFetcher::OnWebSocketMessageSent(const FString& MessageString)
 
 void UComfyImageFetcher::ProcessImageData(const TArray<uint8>& Data)
 {
-	// WebViewer protocol: 8-byte header + image data
-	// Header: 2x uint32 (big endian)
+	//WebViewer protocol: 8-byte header + image data
+	//Header: 2x uint32 (big endian)
 	if (Data.Num() < 8)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] Data too small to contain header (%d bytes)"), Data.Num());
 		return;
 	}
 
-	// Parse header (big endian)
+	//first 8 bytes are header 
 	uint32 Header1 = (Data[0] << 24) | (Data[1] << 16) | (Data[2] << 8) | Data[3];
 	uint32 Header2 = (Data[4] << 24) | (Data[5] << 16) | (Data[6] << 8) | Data[7];
 
 	
-	// Validate header - ComfyUI WebViewer should send [1, 2]
+	//Validate header - ComfyUI WebViewer should send [1, 2]
 	if (Header1 != 1 || Header2 != 2)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] Invalid header values [%u, %u], expected [1, 2]. Skipping corrupted message."), 
@@ -249,23 +249,23 @@ FString UComfyImageFetcher::BuildWebSocketURL(const FString& ServerURL, int32 Ch
 	// Extract host from URL (supports http://, https://, ws://, or plain host)
 	FString Host = ServerURL;
 	
-	// Remove all possible protocols
+	//Remove all possible protocols
 	Host.RemoveFromStart(TEXT("http://"));
 	Host.RemoveFromStart(TEXT("https://"));
 	Host.RemoveFromStart(TEXT("ws://"));
 	Host.RemoveFromStart(TEXT("wss://"));
 	
-	// Remove port if present (e.g., "localhost:8188" -> "localhost")
+	//Remove port if present (e.g., "localhost:8188" -> "localhost")
 	int32 ColonIndex;
 	if (Host.FindChar(':', ColonIndex))
 	{
 		Host = Host.Left(ColonIndex);
 	}
 	
-	// Remove trailing slash
+	//Remove trailing slash
 	Host.RemoveFromEnd(TEXT("/"));
 
-	// Build WebSocket URL: ws://host:8001/image?channel=N
+	//Build WebSocket URL: ws://host:8001/image?channel=N
 	FString WebSocketURL = FString::Printf(TEXT("ws://%s:%d/image?channel=%d"), 
 		*Host, WebSocketPort, ChannelNumber);
 
@@ -278,7 +278,7 @@ void UComfyImageFetcher::TestServerConnection(const FString& ServerURL)
 {
 	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] Testing WebSocket connection to: %s"), *ServerURL);
 	
-	// Build test URL
+	//Build test URL
 	FString TestURL = BuildWebSocketURL(ServerURL, 1);
 	
 	UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] Test URL: %s"), *TestURL);

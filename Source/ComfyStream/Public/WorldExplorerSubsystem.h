@@ -2,48 +2,41 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "Engine/World.h"
 #include "WorldExplorerSubsystem.generated.h"
 
-/**
- * WorldExplorer subsystem for handling Gaussian splat conversions
- */
+class UProceduralMeshComponent;
+
 UCLASS(BlueprintType)
 class COMFYSTREAM_API UWorldExplorerSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
 public:
-	// USubsystem interface
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	// Only Blueprint-callable function - handles everything automatically
+	//Entry point: Reconstruct video → spawn Gaussian mesh or import existing PLY 
 	UFUNCTION(BlueprintCallable, Category = "WorldExplorer")
 	void CheckAndImportSplat(const FString& VideoPath = TEXT(""));
 
 private:
-	// Internal helper functions (not exposed to Blueprint)
+	// Core pipeline
 	void ImportExistingSplat();
-	void RunGaussianSplat();
 	void ProcessVideoToMesh(const FString& VideoPath);
-	void ConvertPLYToOBJ(const FString& PLYPath, const FString& OBJPath);
-	AActor* ImportAndSpawnOBJMesh(const FString& OBJPath, FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator(90, 0, 0), FVector SpawnScale = FVector(400.0f, 400.0f, 400.0f));
-	void ConvertAndSpawnPLY(const FString& PLYPath, FVector SpawnLocation = FVector::ZeroVector, FRotator SpawnRotation = FRotator(90, 0, 0), FVector SpawnScale = FVector(400.0f, 400.0f, 400.0f));
-	
-	// Helper functions
-	FString GetProjectDirectory();
-	FString GetPlyOutputDirectory();
-	FString GetDataDirectory();
-	bool ExecutePythonScript(const FString& ScriptPath, const FString& InputPath, const FString& OutputPath);
-	bool ExecuteDockerScript(const FString& InputPath, const FString& OutputPath);
 	bool RunDockerReconstructionPipeline(const FString& VideoPath);
-	
-	// Runtime mesh import helpers
-	class UProceduralMeshComponent* CreateProceduralMeshFromOBJ(const FString& OBJPath, AActor* Owner);
-	bool ParseOBJFile(const FString& OBJPath, TArray<FVector>& OutVertices, TArray<int32>& OutTriangles, TArray<FVector>& OutNormals, TArray<FColor>& OutVertexColors);
-	
-	// Auto-spawn polling
-	FTimerHandle AutoSpawnTimerHandle;
+
+	// File operations
+	bool ConvertPLYToOBJ(const FString& PLYPath, const FString& OBJPath);
+	FString GetProjectDirectory() const;
+	FString GetOutputDirectory() const;
+	FString GetDataDirectory() const;
+
+	// Runtime import
+	AActor* ImportAndSpawnOBJMesh(const FString& OBJPath, FVector Location, FRotator Rotation, FVector Scale);
+	UProceduralMeshComponent* CreateProceduralMeshFromOBJ(const FString& OBJPath, AActor* Owner);
+	bool ParseOBJFile(const FString& OBJPath, TArray<FVector>& OutVertices, TArray<int32>& OutTriangles, TArray<FVector>& OutNormals, TArray<FColor>& OutColors);
+
+	// Async auto-spawn polling
+	FTimerHandle AutoSpawnTimer;
 	void CheckAndAutoSpawnMesh();
 };

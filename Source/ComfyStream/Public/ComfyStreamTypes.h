@@ -13,15 +13,13 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnConnectionStatusChanged, bool, bC
 // Event for when an error occurs
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnError, const FString&, ErrorMessage);
 
-// Channel types for different ComfyUI streams
+//one channel, segmentation 
 UENUM(BlueprintType)
 enum class EComfyChannel : uint8
 {
-	RGBA		UMETA(DisplayName = "RGBA Map"),
-	Depth		UMETA(DisplayName = "Depth Map"),
-	Mask		UMETA(DisplayName = "Mask Map"),
-	Custom		UMETA(DisplayName = "Custom Channel")
+	Segmentation	UMETA(DisplayName = "Segmentation Channel")
 };
+
 
 // Connection status
 UENUM(BlueprintType)
@@ -67,8 +65,8 @@ struct FComfyStreamConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Interpolation")
 	bool bEnableLerpSmoothing = false;
 
-	// Lerp speed for smooth transitions (higher = faster, 0-1 typical range)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ComfyUI|Interpolation", meta = (ClampMin = "0.01", ClampMax = "10.0"))
+	//Lerp speed (alpha per second). Higher = faster blend.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="ComfyUI|Interpolation", meta=(ClampMin="0.01", ClampMax="20.0"))
 	float LerpSpeed = 5.0f;
 
 	// Threshold for considering lerp complete (0-1)
@@ -77,12 +75,14 @@ struct FComfyStreamConfig
 
 	FComfyStreamConfig()
 	{
-		ServerURL = TEXT("http://localhost:8188");
+		ServerURL = TEXT("ws://localhost:8001");
 		ChannelNumber = 1;
-		ChannelType = EComfyChannel::Depth;
+		ChannelType = EComfyChannel::Degmentation;
 		PingInterval = 20.0f;
 		bAutoReconnect = true;
 		ReconnectDelay = 5.0f;
+
+		// Interpolation defaults
 		bEnableLerpSmoothing = false;
 		LerpSpeed = 5.0f;
 		LerpThreshold = 0.01f;

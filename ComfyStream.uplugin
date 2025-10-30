@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "ComfyStream",
-	"Description": "Plugin for receiving ComfyUI websocket streams, creating dynamic materials, and generating Gaussian Splats from video using WorldExplorer",
+	"Description": "Plugin for full pipeline of using Gaussian Splats and placing 2D textures from ComfyUI inside",
 	"Category": "Media",
 	"CreatedBy": "Alexia Hartogensis",
 	"CreatedByURL": "https://alexiahartogensis.com",
