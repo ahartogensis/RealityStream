@@ -2,6 +2,6 @@
 	"BuildId": "43139311",
 	"Modules": 
 	{
-		"ComfyStream": "UnrealEditor-ComfyStream.dll"
+		"RealityStream": "UnrealEditor-RealityStream.dll"
 	}
 }

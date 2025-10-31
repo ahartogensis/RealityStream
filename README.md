@@ -1,99 +1,151 @@
-## ComfyStream Plugin
+# ComfyStream Plugin
 
-A complete **real-time ComfyUI to Unreal Engine 5.6 streaming pipeline** plus **runtime Gaussian Splat reconstruction** using World Explorer.
-
-Developed by Alexia Hartogensis as a part of the School of Visual Art's Graduate Computer Art's Thesis 
-My goal for this project is to build a pipeline that uses Computer Vision and AI to make scene reconstruction accessible, not just for researchers with advanced technical skills, but also for artists who want to create immersive, interactive artworks.
-The workflow I’ve developed can take footage, real-time or recorded, and automatically convert it into a 3D environment, removing the hassle of manually rebuilding scenes in 3D software.
-In other words, I’m using AI to automate the reconstruction process, creating a bridge between linear media and interactive worlds.
-
----
+A Unreal Engine plugin for receiving ComfyUI websocket streams and creating dynamic materials with depth and RGBA maps.
 
 ## Features
 
-**Live streamed RGB/Depth/Mask** | WebSockets from ComfyUI  
-**Material auto-update** | Textures applied live to your Unreal material  
-**Lerp smoothing** | Frame-to-frame blending  
-**Procedural Splat Import** | Converts Gaussian Splats to Mesh at runtime  
-**Video → PLY → OBJ** | Full pipeline inside Unreal (Docker optional)  
-**Blueprint friendly** | No C++ required  
-
-### ComfyStream
-- Real-time WebSocket stream from ComfyUI
-- PNG decoder built-in  
-- Seamless texture lerp smoothing  
-- Auto-reconnect  
-- Blueprint events  
-
-### World Explorer Integration
-- Accepts video input or existing `.ply`
-- Runs reconstruction, converts to OBJ
-- Spawns procedural mesh at runtime
-- Handles vertex color translucency for correct depth layering
-
----
+- **WebSocket Connection**: Connect to ComfyUI server via WebSocket
+- **Multiple Channels**: Support for depth maps, RGBA maps, and custom channels
+- **Dynamic Materials**: Automatically update material parameters when new textures are received
+- **PNG Decoding**: Built-in PNG decoder for texture conversion
+- **HTTP Client**: Additional HTTP client for ComfyUI API operations
+- **Auto-reconnection**: Automatic reconnection on connection loss
+- **Blueprint Support**: Full Blueprint integration with events and functions
 
 ## Installation
 
-1. Copy `ComfyStream/` into your project's `Plugins/` folder  
-2. Right-click `.uproject` → **Generate Visual Studio files**  
-3. Build project  
-4. Install **World Explorer assets** (if separate)  
-5. Run `build_docker.bat` (Docker Container for Gaussian splat pipeline)
-
----
+1. Copy the `ComfyStream` folder to your project's `Plugins` directory
+2. Regenerate project files
+3. Compile your project
 
 ## Usage
 
-### Comfy Stream Setup
+### Basic Setup
 
-1. Drag **`ComfyStreamActor`** into your level  
-2. Create an Unreal material (e.g. `M_Displacement`):  
-   `RGB_Map` | Base Color  
-   `Depth_Map` | Multiply by a displacement value → World Position Offset  
-   `Mask_Map` | Opacity (Masked)  
-3. Assign that material to the actor's base material   
-4. Set WebSocket URL (default: `ws://localhost:8188`)  
-5. Play — textures stream instantly
-6. Corresponding ComfyUI workflow is object_sender.json
+1. Add a `ComfyStreamActor` to your level
+2. Set the `Base Material` to your M_Displacement material
+3. Configure the channel settings:
+   - **Depth Channel**: Channel 1 for depth maps
+   - **RGBA Channel**: Channel 2 for RGBA maps
+4. Set the ComfyUI server URL (default: `ws://192.168.1.65:8001`)
 
-### Gaussian Splat (World Explorer)
-1. Add the GameInstance subsystem (**auto added**)  
-2. Call Blueprint: Check And Import Splat (Optional Video Path)
-3. Either:
-   - Pass a video path → full pipeline runs, or  
-   - Drop a `point_cloud.ply` into  
-      ```
-      Plugins/ComfyStream/WorldExplorerOutputs/
-      ```
-4. Mesh auto-spawns when completed
+### Blueprint Events
 
----
+The plugin provides several Blueprint events:
 
-## Blueprint Signals
-`OnTextureReceived` | Each time a frame arrives  
-`OnConnectionStatusChanged` | Connected / Disconnected  
-`OnError` | Any connection/decoding failure  
+- `OnTextureReceived`: Called when a new texture is received
+- `OnConnectionStatusChanged`: Called when connection status changes
+- `OnError`: Called when an error occurs
 
----
-
-## C++ Quick Start
+### C++ Usage
 
 ```cpp
-UComfyStreamComponent* Comfy = CreateDefaultSubobject<UComfyStreamComponent>("ComfyStream");
-Comfy->StreamConfig.ServerURL = TEXT("ws://localhost:8188");
-Comfy->StreamConfig.bEnableLerpSmoothing = true;
-Comfy->Connect();
+// Create a ComfyStream component
+UComfyStreamComponent* ComfyComponent = CreateDefaultSubobject<UComfyStreamComponent>(TEXT("ComfyStream"));
+
+// Configure the component
+ComfyComponent->StreamConfig.ChannelNumber = 1;
+ComfyComponent->StreamConfig.ChannelType = EComfyChannel::Depth;
+ComfyComponent->BaseMaterial = YourMaterial;
+
+// Connect to ComfyUI
+ComfyComponent->Connect();
 ```
 
-## Data Flow Overview 
-Camera → ComfyUI → PNG stream → Unreal Material  
-Video → Docker/Colmap → PLY → OBJ → Unreal Procedural Mesh
+### Material Setup
 
-##Trouble Shooting 
-| Issue           | Fix                                         |
-| --------------- | ------------------------------------------- |
-| No textures?    | Confirm Comfy WebSocket & channel running   |
-| Textures black? | Check correct parameter names in material   |
-| Mesh invisible? | Make splat material **Translucent + Unlit** |
-| No OBJ import?  | Verify Docker installed & batch executed    |
+Your material should have the following parameters:
+- `Depth_Map`: Texture parameter for depth maps
+- `RGB_Map`: Texture parameter for RGBA maps
+
+## Configuration
+
+### Stream Configuration
+
+```cpp
+FComfyStreamConfig Config;
+Config.ServerURL = TEXT("ws://192.168.1.65:8001");
+Config.ChannelNumber = 1;
+Config.ChannelType = EComfyChannel::Depth;
+Config.PingInterval = 20.0f;
+Config.bAutoReconnect = true;
+Config.ReconnectDelay = 5.0f;
+```
+
+### Channel Types
+
+- `EComfyChannel::Depth`: For depth maps
+- `EComfyChannel::RGBA`: For RGBA maps
+- `EComfyChannel::Custom`: For custom channels
+
+## API Reference
+
+### ComfyStreamComponent
+
+Main component for handling ComfyUI streams.
+
+**Functions:**
+- `Connect()`: Connect to ComfyUI server
+- `Disconnect()`: Disconnect from server
+- `IsConnected()`: Check connection status
+- `SetChannelNumber(int32)`: Set channel number
+- `SetServerURL(FString)`: Set server URL
+
+**Events:**
+- `OnTextureReceived`: Texture received event
+- `OnConnectionStatusChanged`: Connection status changed event
+- `OnError`: Error event
+
+### ComfyWsClient
+
+WebSocket client for ComfyUI communication.
+
+**Functions:**
+- `Connect(FString)`: Connect to WebSocket URL
+- `Disconnect()`: Disconnect
+- `SendPing()`: Send ping message
+- `SendMessage(FString)`: Send custom message
+
+### ComfyPngDecoder
+
+PNG decoder for texture conversion.
+
+**Functions:**
+- `DecodePNGToTexture(TArray<uint8>)`: Decode PNG to texture
+- `IsValidPNGData(TArray<uint8>)`: Validate PNG data
+
+### ComfyHttpClient
+
+HTTP client for ComfyUI API operations.
+
+**Functions:**
+- `SendPrompt(FString)`: Send prompt to ComfyUI
+- `GetQueueStatus()`: Get queue status
+- `GetHistory(FString)`: Get execution history
+- `InterruptQueue()`: Interrupt current queue
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection Failed**: Check if ComfyUI server is running and accessible
+2. **Texture Not Updating**: Verify material parameter names match the component settings
+3. **Compilation Errors**: Ensure WebSockets plugin is enabled
+
+### Logs
+
+The plugin provides detailed logging:
+- `[ComfyWS]`: WebSocket related logs
+- `[ComfyPNG]`: PNG decoding logs
+- `[ComfyHTTP]`: HTTP client logs
+
+## Dependencies
+
+- WebSockets plugin
+- ImageWrapper module
+- HTTP module
+- Json module
+
+## License
+
+This plugin is provided as-is for educational and development purposes.
