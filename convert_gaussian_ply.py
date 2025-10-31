@@ -127,15 +127,15 @@ def convert_to_unreal_coordinates(positions, normals):
     y_range = max(y_coords) - min(y_coords)
     z_range = max(z_coords) - min(z_coords)
 
-    print(f"[WorldExplorer] Coordinate spans → X:{x_range:.3f}, Y:{y_range:.3f}, Z:{z_range:.3f}")
+    print(f"[SplatCreator] Coordinate spans → X:{x_range:.3f}, Y:{y_range:.3f}, Z:{z_range:.3f}")
     if z_range < 0.001:
-        print("[WorldExplorer] Flat plane detected — swapping Y/Z")
+        print("[SplatCreator] Flat plane detected — swapping Y/Z")
         for i in range(len(positions)):
             positions[i][1], positions[i][2] = positions[i][2], positions[i][1]
             if normals:
                 normals[i][1], normals[i][2] = normals[i][2], normals[i][1]
 
-    print("[WorldExplorer] Converting to Unreal Engine coordinate system...")
+    print("[SplatCreator] Converting to Unreal Engine coordinate system...")
     for i in range(len(positions)):
         x, y, z = positions[i]
         positions[i] = [z, x, y]
@@ -249,11 +249,11 @@ def create_color_texture(colors, texture_file):
                         f.write("0 0 0 ")  # Black for unused pixels
                 f.write("\n")
         
-        print(f"[WorldExplorer] Created color texture: {texture_file}")
+        print(f"[SplatCreator] Created color texture: {texture_file}")
         return width, height
         
     except Exception as e:
-        print(f"[WorldExplorer] Error creating texture: {e}")
+        print(f"[SplatCreator] Error creating texture: {e}")
         return None, None
 
 def write_obj_with_materials(positions, normals, colors, output_file):
@@ -268,7 +268,7 @@ def write_obj_with_materials(positions, normals, colors, output_file):
     
     # Estimate normals if not provided using Open3D
     if not normals or len(normals) == 0:
-        print("[WorldExplorer] Estimating normals for quad orientation...")
+        print("[SplatCreator] Estimating normals for quad orientation...")
         import open3d as o3d
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(np.array(positions))
@@ -277,7 +277,7 @@ def write_obj_with_materials(positions, normals, colors, output_file):
         )
         normals_array = np.asarray(pcd.normals)
         normals = normals_array.tolist()
-        print(f"[WorldExplorer] Estimated {len(normals)} normals")
+        print(f"[SplatCreator] Estimated {len(normals)} normals")
     
     f = open(output_file, 'w')
     f.write("# Gaussian Splat OBJ (Unreal coords, normal-oriented quads)\n")
@@ -343,7 +343,7 @@ def write_obj_with_materials(positions, normals, colors, output_file):
         if colors and tex_width:
             f.write(f"map_Kd {os.path.basename(texture_file)}\n")
 
-    print(f"[WorldExplorer] OBJ+MTL written → {output_file}")
+    print(f"[SplatCreator] OBJ+MTL written → {output_file}")
 
 
 # ============================================================
@@ -393,8 +393,8 @@ def write_obj_with_vertex_colors(mesh, output_path):
         f.write("d 1.0\n")
         f.write("# Vertex colors are embedded in OBJ vertex definitions\n")
     
-    print(f"[WorldExplorer] OBJ with vertex colors written: {output_path}")
-    print(f"[WorldExplorer] MTL file created: {mtl_path}")
+    print(f"[SplatCreator] OBJ with vertex colors written: {output_path}")
+    print(f"[SplatCreator] MTL file created: {mtl_path}")
 
 def geometry_nodes_like_remesh(positions, colors=None, poisson_depth=10, smooth_iterations=5, voxel_downsample=0.01):
     """Emulate Blender 'Points to Volume → Volume to Mesh' with color transfer.
@@ -419,23 +419,23 @@ def geometry_nodes_like_remesh(positions, colors=None, poisson_depth=10, smooth_
     # Optional voxel downsampling for uniformity
     if voxel_downsample > 0:
         pcd = pcd.voxel_down_sample(voxel_size=voxel_downsample)
-        print(f"[WorldExplorer] Voxel downsampled to {len(pcd.points)} points")
+        print(f"[SplatCreator] Voxel downsampled to {len(pcd.points)} points")
     
-    # Estimate normals with better parameters
+    # Estimate normals with improved parameters for better detail
     pcd.estimate_normals(
-        search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30)
+        search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.15, max_nn=50)  # Larger radius, more neighbors = better normals
     )
-    pcd.orient_normals_consistent_tangent_plane(k=15)
+    pcd.orient_normals_consistent_tangent_plane(k=20)  # Increased from 15 to 20 for better consistency
 
     # Create surface (Poisson) with higher quality
-    print(f"[WorldExplorer] Running Poisson reconstruction (depth={poisson_depth})...")
+    print(f"[SplatCreator] Running Poisson reconstruction (depth={poisson_depth})...")
     mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
         pcd, depth=poisson_depth, width=0, scale=1.1, linear_fit=False
     )
     
-    # Remove low-density vertices (cleanup outlier geometry) - less aggressive
+    # Remove low-density vertices (cleanup outlier geometry) - even less aggressive to preserve detail
     densities = np.asarray(densities)
-    density_threshold = np.quantile(densities, 0.001)  # Remove only bottom 0.1%
+    density_threshold = np.quantile(densities, 0.0005)  # Remove only bottom 0.05% (was 0.1%) to preserve more detail
     vertices_to_remove = densities < density_threshold
     mesh.remove_vertices_by_mask(vertices_to_remove)
     
@@ -447,12 +447,12 @@ def geometry_nodes_like_remesh(positions, colors=None, poisson_depth=10, smooth_
     
     # Apply Laplacian smoothing for cleaner surfaces
     if smooth_iterations > 0:
-        print(f"[WorldExplorer] Applying Laplacian smoothing ({smooth_iterations} iterations)...")
+        print(f"[SplatCreator] Applying Laplacian smoothing ({smooth_iterations} iterations)...")
         mesh = mesh.filter_smooth_laplacian(number_of_iterations=smooth_iterations)
     
     # Transfer colors from point cloud to mesh vertices
     if colors:
-        print("[WorldExplorer] Transferring vertex colors...")
+        print("[SplatCreator] Transferring vertex colors...")
         mesh_vertices = np.asarray(mesh.vertices)
         pcd_points = np.asarray(pcd.points)
         pcd_colors = np.asarray(pcd.colors)
@@ -460,7 +460,7 @@ def geometry_nodes_like_remesh(positions, colors=None, poisson_depth=10, smooth_
         # Filter out any NaN or inf values
         valid_mask = np.all(np.isfinite(mesh_vertices), axis=1)
         if not np.all(valid_mask):
-            print(f"[WorldExplorer] Warning: Removing {np.sum(~valid_mask)} invalid vertices")
+            print(f"[SplatCreator] Warning: Removing {np.sum(~valid_mask)} invalid vertices")
             mesh.remove_vertices_by_mask(~valid_mask)
             mesh_vertices = np.asarray(mesh.vertices)
         
@@ -469,7 +469,7 @@ def geometry_nodes_like_remesh(positions, colors=None, poisson_depth=10, smooth_
         mesh_colors = pcd_colors[indices]
         mesh.vertex_colors = o3d.utility.Vector3dVector(mesh_colors)
     
-    print(f"[WorldExplorer] Remeshed surface: {len(mesh.vertices)} vertices, {len(mesh.triangles)} triangles")
+    print(f"[SplatCreator] Remeshed surface: {len(mesh.vertices)} vertices, {len(mesh.triangles)} triangles")
     return mesh
 
 
@@ -490,33 +490,33 @@ def convert_gaussian_ply_to_obj_and_remesh(ply_file, output_path):
     
     os.makedirs(output_dir, exist_ok=True)
 
-    print(f"[WorldExplorer] Reading PLY: {ply_file}")
+    print(f"[SplatCreator] Reading PLY: {ply_file}")
     vertex_count, properties = read_ply_header(ply_file)
     positions, normals, colors = read_ply_data(ply_file, vertex_count, properties)
-    print(f"[WorldExplorer] Loaded {len(positions)} vertices")
+    print(f"[SplatCreator] Loaded {len(positions)} vertices")
 
     positions, normals = convert_to_unreal_coordinates(positions, normals)
 
-    # Keep maximum detail for high-quality remesh
-    if len(positions) > 100000:
-        positions, normals, colors = downsample_data(positions, normals, colors, 100000)
-        print(f"[WorldExplorer] Downsampled to {len(positions)}")
+    # Keep maximum detail for high-quality remesh - increased limit for more detail
+    if len(positions) > 200000:
+        positions, normals, colors = downsample_data(positions, normals, colors, 200000)
+        print(f"[SplatCreator] Downsampled to {len(positions)}")
 
     # Skip original OBJ, go straight to remesh
-    print("[WorldExplorer] Performing MAXIMUM QUALITY volumetric remesh...")
-    print("[WorldExplorer] WARNING: This will take 5-10 minutes for best quality!")
-    # Parameters optimized for sparse reconstructions with motion blur
+    print("[SplatCreator] Performing ULTRA-HIGH QUALITY volumetric remesh...")
+    print("[SplatCreator] WARNING: This will take 10-20 minutes for maximum quality!")
+    # Parameters optimized for maximum detail
     mesh = geometry_nodes_like_remesh(
         positions, 
         colors, 
-        poisson_depth=12,       # MAXIMUM detail (very slow but best quality)
-        smooth_iterations=5,    # Less smoothing = preserve more detail
-        voxel_downsample=0.002  # Ultra-fine sampling for maximum resolution
+        poisson_depth=13,       # Increased from 12 to 13 for more detail (very slow!)
+        smooth_iterations=3,    # Reduced smoothing to preserve more fine detail
+        voxel_downsample=0.001  # Finer sampling (was 0.002) for maximum resolution
     )
     
     # Use custom OBJ writer that properly embeds vertex colors
     write_obj_with_vertex_colors(mesh, remeshed_path)
-    print(f"[WorldExplorer] Remeshed OBJ saved: {remeshed_path}")
+    print(f"[SplatCreator] Remeshed OBJ saved: {remeshed_path}")
 
     return True
 

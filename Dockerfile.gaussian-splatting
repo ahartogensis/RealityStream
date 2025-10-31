@@ -81,10 +81,10 @@ RUN git clone --recursive https://github.com/graphdeco-inria/gaussian-splatting.
 # Workspace setup
 # ----------------------------------------------------------------------
 WORKDIR /workspace
-RUN mkdir -p /workspace/data /workspace/outputs /workspace/scripts
+RUN mkdir -p /workspace/data /workspace/outputs /workspace/scripts/Plugins/RealityStream
 
 # Copy the conversion script
-COPY convert_gaussian_ply.py /workspace/scripts/Plugins/ComfyStream/convert_gaussian_ply.py
-RUN chmod +x /workspace/scripts/Plugins/ComfyStream/convert_gaussian_ply.py
+COPY convert_gaussian_ply.py /workspace/scripts/Plugins/RealityStream/convert_gaussian_ply.py
+RUN chmod +x /workspace/scripts/Plugins/RealityStream/convert_gaussian_ply.py
 
 CMD ["bash"]

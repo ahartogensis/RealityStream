@@ -238,29 +238,65 @@ void UComfyImageFetcher::ProcessImageData(const TArray<uint8>& Data)
 	}
 
 	//WebViewer protocol: 8-byte header + image data
-	//Header: 2x uint32 (big endian)
+	//Header: 2x uint32 - try both big-endian and little-endian formats
 	if (Data.Num() < 8)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] Data too small to contain header (%d bytes)"), Data.Num());
 		return;
 	}
 
-	//first 8 bytes are header 
-	uint32 Header1 = (Data[0] << 24) | (Data[1] << 16) | (Data[2] << 8) | Data[3];
-	uint32 Header2 = (Data[4] << 24) | (Data[5] << 16) | (Data[6] << 8) | Data[7];
-
+	// Try big-endian first (original format)
+	uint32 Header1_BE = (Data[0] << 24) | (Data[1] << 16) | (Data[2] << 8) | Data[3];
+	uint32 Header2_BE = (Data[4] << 24) | (Data[5] << 16) | (Data[6] << 8) | Data[7];
 	
-	//Validate header - ComfyUI WebViewer should send [1, 2]
-	if (Header1 != 1 || Header2 != 2)
+	// Try little-endian format
+	uint32 Header1_LE = Data[0] | (Data[1] << 8) | (Data[2] << 16) | (Data[3] << 24);
+	uint32 Header2_LE = Data[4] | (Data[5] << 8) | (Data[6] << 16) | (Data[7] << 24);
+	
+	// Check if data starts with PNG signature (89 50 4E 47) - might be raw PNG without header
+	bool bIsPNGSignature = (Data.Num() >= 4) && (Data[0] == 0x89 && Data[1] == 0x50 && Data[2] == 0x4E && Data[3] == 0x47);
+	
+	int32 ImageDataOffset = 0;
+	
+	// Validate header - ComfyUI WebViewer should send [1, 2]
+	if (Header1_BE == 1 && Header2_BE == 2)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] Invalid header values [%u, %u], expected [1, 2]. Skipping corrupted message."), 
-			Header1, Header2);
+		// Big-endian format confirmed
+		ImageDataOffset = 8;
+		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher] Valid header (big-endian): [1, 2]"));
+	}
+	else if (Header1_LE == 1 && Header2_LE == 2)
+	{
+		// Little-endian format confirmed
+		ImageDataOffset = 8;
+		UE_LOG(LogTemp, Verbose, TEXT("[ComfyImageFetcher] Valid header (little-endian): [1, 2]"));
+	}
+	else if (bIsPNGSignature)
+	{
+		// No header, raw PNG data - use entire buffer
+		ImageDataOffset = 0;
+		UE_LOG(LogTemp, Display, TEXT("[ComfyImageFetcher] No header detected, treating as raw PNG data"));
+	}
+	else
+	{
+		// Invalid header - log and skip
+		UE_LOG(LogTemp, Warning, TEXT("[ComfyImageFetcher] Invalid header values [BE: %u, %u] [LE: %u, %u], expected [1, 2]. First 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X. Skipping message."), 
+			Header1_BE, Header2_BE, Header1_LE, Header2_LE,
+			Data[0], Data[1], Data[2], Data[3], Data[4], Data[5], Data[6], Data[7]);
 		return;
 	}
 
-	// Extract image data (skip 8-byte header)
+	// Extract image data (skip header if present)
 	TArray<uint8> ImageBytes;
-	ImageBytes.Append(&Data[8], Data.Num() - 8);
+	if (ImageDataOffset > 0)
+	{
+		ImageBytes.Append(&Data[ImageDataOffset], Data.Num() - ImageDataOffset);
+	}
+	else
+	{
+		// Raw PNG data, use entire buffer
+		ImageBytes = Data;
+	}
 
 	if (ImageBytes.Num() == 0)
 	{

@@ -20,6 +20,25 @@ public:
 	void CheckAndImportSplat(const FString& VideoPath = TEXT(""));
 
 private:
+	// Auto-cycle through PLY files
+	TArray<FString> PlyFiles;
+	int32 CurrentFileIndex = 0;
+	AActor* CurrentMeshActor = nullptr;
+	FTimerHandle LoopTimer;
+	FString CurrentlyConvertingFile; // Track which file is being converted to avoid duplicate conversions
+	bool bIsShuttingDown = false; // Track if subsystem is shutting down to prevent async crashes
+
+	// Docker container management
+	void StartDockerContainer();
+	void StopDockerContainer();
+	bool IsDockerContainerRunning();
+	bool EnsureDockerContainerRunning();
+	void ScanForPLYFiles();
+	void CycleMeshes();
+
+	// Convert current PLY to OBJ
+	void ConvertCurrentPLY();
+
 	// Core pipeline
 	void ImportExistingSplat();
 	void ProcessVideoToMesh(const FString& VideoPath);
@@ -27,6 +46,7 @@ private:
 
 	// File operations
 	bool ConvertPLYToOBJ(const FString& PLYPath, const FString& OBJPath);
+	bool ConvertPLYToOBJ_Internal(const FString& PLYPath, const FString& OBJPath);
 	FString GetProjectDirectory() const;
 	FString GetOutputDirectory() const;
 	FString GetDataDirectory() const;
