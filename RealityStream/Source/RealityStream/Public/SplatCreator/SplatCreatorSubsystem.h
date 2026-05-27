@@ -32,17 +32,18 @@ struct FImagePreviewTarget
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	/** Unique preview id (e.g. matA). This is not a mesh material slot name. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImagePreview", meta = (DisplayName = "Preview Target Id"))
+	FName TargetName = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImagePreview")
 	TObjectPtr<UPrimitiveComponent> PlaneComponent = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ImagePreview")
 	TObjectPtr<UMaterialInterface> Material = nullptr;
 
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> MID = nullptr;
-
-	UPROPERTY()
-	FName TargetName = NAME_None;
 };
 
 UCLASS(BlueprintType)
@@ -132,15 +133,34 @@ public:
 
 	// Register or update an image preview target for a specific blueprint/plane.
 	// Each target name stores its own plane, material, and MID.
-	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI")
+	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI", meta = (DisplayName = "Set Image Preview Target", AdvancedDisplay = "TargetName"))
+	void SetImagePreviewTargetById(const FString& TargetId, UPrimitiveComponent* PlaneComponent, UMaterialInterface* Material);
+
+	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI", meta = (DisplayName = "Set Image Preview Target (Name)"))
 	void SetImagePreviewTarget(FName TargetName, UPrimitiveComponent* PlaneComponent, UMaterialInterface* Material);
+
+	/** Registers every entry in Targets; skips entries with an empty Preview Target Id. */
+	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI")
+	void RegisterImagePreviewTargets(const TArray<FImagePreviewTarget>& Targets);
 
 	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI")
 	void RemoveImagePreviewTarget(FName TargetName);
+
+	/** Re-applies the current splat's preview image to all registered targets (e.g. after delayed registration). */
+	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI|Image Preview")
+	void RefreshImagePreview();
 	
 	/** If true, send the current splat's image to ComfyUI when loading. If false, send the next splat's image (default). */
 	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI")
 	void SetSendCurrentSplatImageToComfyUI(bool bSendCurrent);
+
+	/** Set ComfyUI WebSocket host/URL used by image sender (examples: "127.0.0.1:8001", "ws://127.0.0.1:8001"). */
+	UFUNCTION(BlueprintCallable, Category = "SplatCreator|ComfyUI")
+	void SetComfyUIWebSocketHost(const FString& InHostOrUrl);
+
+	/** Get current ComfyUI WebSocket host/URL used by image sender. */
+	UFUNCTION(BlueprintPure, Category = "SplatCreator|ComfyUI")
+	FString GetComfyUIWebSocketHost() const;
 
 	/** If true, send current splat's image. If false, send next splat's image (for ComfyUI to process ahead of cycle). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplatCreator|ComfyUI", meta = (EditCondition = "bSendImageToComfyUIOnPlyChange"))
@@ -304,7 +324,7 @@ private:
 	bool bCycleSplatOnComfyFrame = false;
 
 	UPROPERTY(EditAnywhere, Category = "SplatCreator|ComfyUI", meta = (EditCondition = "bSendImageToComfyUIOnPlyChange"))
-	FString ComfyUIWebSocketHost = TEXT("127.0.0.1");
+	FString ComfyUIWebSocketHost = TEXT("127.0.0.1:8001");
 
 	UPROPERTY(EditAnywhere, Category = "SplatCreator|ComfyUI", meta = (EditCondition = "bSendImageToComfyUIOnPlyChange"))
 	int32 ComfyUIImageChannel = 2;
@@ -372,6 +392,7 @@ private:
 	void ResetToNormal();
 	void TrySendImageToComfyUI(const FString& PLYPath);
 	void UpdateImagePreview(const FString& PLYPath);
+	void RefreshImagePreviewIfLoaded();
 
 	FString GetSplatCreatorFolder() const;
 };

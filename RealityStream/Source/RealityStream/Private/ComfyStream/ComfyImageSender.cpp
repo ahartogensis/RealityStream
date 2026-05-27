@@ -54,7 +54,6 @@ void UComfyImageSender::EnsureConnection()
 	{
 		FModuleManager::LoadModuleChecked<FWebSocketsModule>(TEXT("WebSockets"));
 		FString WebSocketURL = BuildWebSocketURL(CurrentServerURL, CurrentChannel);
-		UE_LOG(LogTemp, Display, TEXT("[ComfyImageSender] Connecting to %s (channel %d) to send image"), *WebSocketURL, CurrentChannel);
 
 		WebSocket = FWebSocketsModule::Get().CreateWebSocket(WebSocketURL);
 

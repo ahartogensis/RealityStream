@@ -740,14 +740,16 @@ void UComfyImageFetcher::ProcessImageData(const TArray<uint8>& In)
 
 FString UComfyImageFetcher::BuildWebSocketURL(const FString& ServerURL, int32 ChannelNumber)
 {
-	FString Host = ServerURL;
-	Host.RemoveFromStart(TEXT("http://"));
-	Host.RemoveFromStart(TEXT("https://"));
-	Host.RemoveFromStart(TEXT("ws://"));
-	Host.RemoveFromStart(TEXT("wss://"));
-	int32 Colon;
-	if (Host.FindChar(':', Colon)) Host = Host.Left(Colon);
-	Host.RemoveFromEnd(TEXT("/"));
+	FString BaseURL = ServerURL;
+	BaseURL.TrimStartAndEndInline();
+	BaseURL.RemoveFromEnd(TEXT("/"));
 
-	return FString::Printf(TEXT("ws://%s:%d/image?channel=%d"), *Host, WebSocketPort, ChannelNumber);
+	const bool bHasScheme = BaseURL.StartsWith(TEXT("ws://")) || BaseURL.StartsWith(TEXT("wss://"));
+	if (!bHasScheme)
+	{
+		BaseURL = FString::Printf(TEXT("ws://%s"), *BaseURL);
+	}
+
+	// Respect the full URL provided by Blueprint/config (including custom port), only append the image endpoint.
+	return FString::Printf(TEXT("%s/image?channel=%d"), *BaseURL, ChannelNumber);
 }

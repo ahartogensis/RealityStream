@@ -1,4 +1,6 @@
 #include "SplatCreator/SplatCreatorSubsystem.h"
+#include "RealityStreamPaths.h"
+#include "RealityStreamMaterials.h"
 #include "ComfyStream/ComfyImageSender.h"
 #include "ComfyStream/ComfyPngDecoder.h"
 #include "Components/PrimitiveComponent.h"
@@ -26,6 +28,38 @@
 #include "Math/RandomStream.h"
 #include "Math/Box.h"
 int debug = 0; // 0 = off, 1 = on
+
+namespace SplatCreatorComfyUI
+{
+	/** Ensures host/URL has an explicit port (default 8001 for Comfy WebViewer). */
+	static FString NormalizeWebSocketHostOrUrl(FString InHostOrUrl)
+	{
+		InHostOrUrl.TrimStartAndEndInline();
+		InHostOrUrl.RemoveFromEnd(TEXT("/"));
+		if (InHostOrUrl.IsEmpty())
+		{
+			return InHostOrUrl;
+		}
+
+		FString Authority = InHostOrUrl;
+		int32 SchemeIdx = INDEX_NONE;
+		if (InHostOrUrl.FindChar(TEXT(':'), SchemeIdx) && InHostOrUrl.Mid(SchemeIdx).StartsWith(TEXT("://")))
+		{
+			Authority = InHostOrUrl.Mid(SchemeIdx + 3);
+		}
+		int32 SlashIdx = INDEX_NONE;
+		if (Authority.FindChar(TEXT('/'), SlashIdx))
+		{
+			Authority = Authority.Left(SlashIdx);
+		}
+		const bool bHasExplicitPort = Authority.Contains(TEXT(":"));
+		if (!bHasExplicitPort)
+		{
+			InHostOrUrl = FString::Printf(TEXT("%s:8001"), *InHostOrUrl);
+		}
+		return InHostOrUrl;
+	}
+}
 
 // ============================================================
 // Initialize
@@ -137,11 +171,27 @@ void USplatCreatorSubsystem::Deinitialize()
 // FIND PLYs
 // ============================================================
 
+void USplatCreatorSubsystem::SetImagePreviewTargetById(const FString& TargetId, UPrimitiveComponent* PlaneComponent, UMaterialInterface* Material)
+{
+	const FString TrimmedId = TargetId.TrimStartAndEnd();
+	if (TrimmedId.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SplatCreator] SetImagePreviewTarget skipped: Target Id is empty. Use a string literal (e.g. \"matA\") on the Target Id pin. ")
+			TEXT("This is not the mesh material slot name. Remove duplicate Set Image Preview Target nodes with unwired Target Id pins."));
+		return;
+	}
+
+	SetImagePreviewTarget(FName(*TrimmedId), PlaneComponent, Material);
+}
+
 void USplatCreatorSubsystem::SetImagePreviewTarget(FName TargetName, UPrimitiveComponent* PlaneComponent, UMaterialInterface* Material)
 {
 	if (TargetName.IsNone())
 	{
-		UE_LOG(LogTemp, Error, TEXT("[SplatCreator] SetImagePreviewTarget failed: TargetName is None"));
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SplatCreator] SetImagePreviewTarget skipped: TargetName is None. Wire a Name literal (e.g. matA) to Target Name, ")
+			TEXT("or use Set Image Preview Target with Target Id = \"matA\". This is not the mesh material slot name."));
 		return;
 	}
 
@@ -167,6 +217,7 @@ void USplatCreatorSubsystem::SetImagePreviewTarget(FName TargetName, UPrimitiveC
 
 			UE_LOG(LogTemp, Display, TEXT("[SplatCreator] Updated preview target %s with material %s"),
 				*TargetName.ToString(), *Material->GetName());
+			RefreshImagePreviewIfLoaded();
 			return;
 		}
 	}
@@ -181,6 +232,44 @@ void USplatCreatorSubsystem::SetImagePreviewTarget(FName TargetName, UPrimitiveC
 
 	UE_LOG(LogTemp, Display, TEXT("[SplatCreator] Added preview target %s with material %s"),
 		*TargetName.ToString(), *Material->GetName());
+
+	RefreshImagePreviewIfLoaded();
+}
+
+void USplatCreatorSubsystem::RegisterImagePreviewTargets(const TArray<FImagePreviewTarget>& Targets)
+{
+	for (int32 Index = 0; Index < Targets.Num(); ++Index)
+	{
+		const FImagePreviewTarget& Entry = Targets[Index];
+		if (Entry.TargetName.IsNone())
+		{
+			if (IsValid(Entry.PlaneComponent) || IsValid(Entry.Material))
+			{
+				UE_LOG(LogTemp, Warning,
+					TEXT("[SplatCreator] RegisterImagePreviewTargets skipped index %d: Preview Target Id is empty. ")
+					TEXT("Set TargetName / Preview Target Id on the struct (e.g. matA), not only the material slot."),
+					Index);
+			}
+			continue;
+		}
+
+		SetImagePreviewTarget(Entry.TargetName, Entry.PlaneComponent, Entry.Material);
+	}
+}
+
+void USplatCreatorSubsystem::RefreshImagePreview()
+{
+	RefreshImagePreviewIfLoaded();
+}
+
+void USplatCreatorSubsystem::RefreshImagePreviewIfLoaded()
+{
+	if (CurrentLoadedPlyPath.IsEmpty())
+	{
+		return;
+	}
+
+	UpdateImagePreview(CurrentLoadedPlyPath);
 }
 
 void USplatCreatorSubsystem::RemoveImagePreviewTarget(FName TargetName)
@@ -201,11 +290,37 @@ void USplatCreatorSubsystem::SetSendCurrentSplatImageToComfyUI(bool bSendCurrent
 	bSendCurrentSplatImageToComfyUI = bSendCurrent;
 }
 
+void USplatCreatorSubsystem::SetComfyUIWebSocketHost(const FString& InHostOrUrl)
+{
+	FString Normalized = InHostOrUrl;
+	Normalized.TrimStartAndEndInline();
+	Normalized.RemoveFromEnd(TEXT("/"));
+
+	if (Normalized.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SplatCreator] SetComfyUIWebSocketHost received an empty value. Keeping previous host: %s"), *ComfyUIWebSocketHost);
+		return;
+	}
+
+	Normalized = SplatCreatorComfyUI::NormalizeWebSocketHostOrUrl(Normalized);
+
+	ComfyUIWebSocketHost = Normalized;
+	// Drop any in-flight connect so the next send uses the new URL.
+	if (ComfyImageSender)
+	{
+		ComfyImageSender->Disconnect();
+	}
+	UE_LOG(LogTemp, Display, TEXT("[SplatCreator] ComfyUIWebSocketHost set to %s"), *ComfyUIWebSocketHost);
+}
+
+FString USplatCreatorSubsystem::GetComfyUIWebSocketHost() const
+{
+	return ComfyUIWebSocketHost;
+}
+
 FString USplatCreatorSubsystem::GetSplatCreatorFolder() const
 {
-	FString PluginDir = FPaths::ProjectPluginsDir() / TEXT("RealityStream");
-	FString SplatCreatorDir = PluginDir / TEXT("SplatCreatorOutputs");
-	return SplatCreatorDir;
+	return RealityStreamPaths::GetSplatCreatorOutputsDir();
 }
 
 void USplatCreatorSubsystem::TrySendImageToComfyUI(const FString& PLYPath)
@@ -244,7 +359,18 @@ void USplatCreatorSubsystem::TrySendImageToComfyUI(const FString& PLYPath)
 		ComfyImageSender = NewObject<UComfyImageSender>(this);
 	}
 
-	FString ServerURL = FString::Printf(TEXT("ws://%s:8001"), *ComfyUIWebSocketHost);
+	FString ServerURL = SplatCreatorComfyUI::NormalizeWebSocketHostOrUrl(ComfyUIWebSocketHost);
+	ServerURL.TrimStartAndEndInline();
+	if (ServerURL.IsEmpty())
+	{
+		if (debug) UE_LOG(LogTemp, Warning, TEXT("[SplatCreator] ComfyUIWebSocketHost is empty after normalize - cannot send image."));
+		return;
+	}
+	const bool bHasScheme = ServerURL.StartsWith(TEXT("ws://")) || ServerURL.StartsWith(TEXT("wss://"));
+	if (!bHasScheme)
+	{
+		ServerURL = FString::Printf(TEXT("ws://%s"), *ServerURL);
+	}
 	if (debug) UE_LOG(LogTemp, Display, TEXT("[SplatCreator] Sending image to ComfyUI %s channel %d (%d bytes)"), *ServerURL, ComfyUIImageChannel, ImageData.Num());
 	ComfyImageSender->ConfigureAndSend(ServerURL, ComfyUIImageChannel, ImageData);
 }
@@ -550,7 +676,9 @@ void USplatCreatorSubsystem::ScanForPLYFiles()
 	// Check if directory exists
 	if (!FPaths::DirectoryExists(AbsolutePath))
 	{
-		if(debug) UE_LOG(LogTemp, Error, TEXT("[SplatCreator] Directory does not exist: %s"), *AbsolutePath);
+		UE_LOG(LogTemp, Warning,
+			TEXT("[SplatCreator] SplatCreatorOutputs directory does not exist: %s (packaged builds need this folder staged under Plugins/RealityStream)"),
+			*AbsolutePath);
 		return;
 	}
 	
@@ -1109,18 +1237,19 @@ void USplatCreatorSubsystem::CreatePointCloud(const TArray<FVector>& Positions, 
 	UStaticMesh* SphereMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 	if (!SphereMesh) return;
 	
-	// Load plane morph material
-	UMaterialInterface* Material = nullptr;
+	UMaterialInterface* Material = RealityStreamMaterials::GetSplatMorphMaterial();
 	bool bMorphMaterialLoaded = false;
+	if (Material)
 	{
-		UObject* Loaded = PlaneMorphMaterialPath.TryLoad();
-		Material = Cast<UMaterialInterface>(Loaded);
-		if (!Material) Material = LoadObject<UMaterialInterface>(nullptr, *PlaneMorphMaterialPath.ToString());
-		bMorphMaterialLoaded = (Material != nullptr);
+		const FString MaterialPath = Material->GetPathName();
+		bMorphMaterialLoaded = MaterialPath.Contains(TEXT("M_SplatMorph"), ESearchCase::IgnoreCase);
+		if (!bMorphMaterialLoaded)
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("[SplatCreator] M_SplatMorph not in package — using fallback material (%s). Cook /Game/_GENERATED/Materials and enable Used With Instanced Static Meshes on project materials."),
+				*Material->GetName());
+		}
 	}
-	if (!Material) Material = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/_GENERATED/Materials/M_VertexColor.M_VertexColor"));
-	if (!bMorphMaterialLoaded && debug)
-		UE_LOG(LogTemp, Warning, TEXT("[SplatCreator] Plane morph material not found at %s - using direct 3D display."), *PlaneMorphMaterialPath.ToString());
 	
 	// Precompute scaled positions and sphere sizes (needed for both paths)
 	TArray<FVector> ScaledPositions;
@@ -1141,12 +1270,6 @@ void USplatCreatorSubsystem::CreatePointCloud(const TArray<FVector>& Positions, 
 	const FVector DownOffset = FVector(0.0f, 0.0f, 0.0f);
 	const int32 NumInstances = FMath::Min(Positions.Num(), Colors.Num());
 	
-	// Create DynamicMaterial
-	if (!Material)
-	{
-		if(debug) UE_LOG(LogTemp, Warning, TEXT("[SplatCreator] Material not found, trying fallback"));
-		Material = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
-	}
 	UMaterialInterface* MatToUse = nullptr;
 	if (Material)
 	{

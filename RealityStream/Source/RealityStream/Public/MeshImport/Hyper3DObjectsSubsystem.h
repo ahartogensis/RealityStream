@@ -216,6 +216,9 @@ private:
 #endif
 	UMaterialInstanceDynamic* ApplyMaterial(UProceduralMeshComponent* MeshComp, AActor* Owner, const FTextureSet& Textures, const TArray<FColor>& VertexColors);
 
+	/** Register textures with LoadedTextures so GC does not collect them while raw pointers remain in mesh cache or material parameters. */
+	void KeepTexturesAlive(const FTextureSet& TextureSet);
+
 	FString GetImportDirectory() const;
 	void DestroyAllObjects();
 
@@ -262,5 +265,7 @@ private:
 	bool bOpacityFadeTickActive = false;
 	/** After hold+fade cycle completed with opacity 0; new MIDs use 0 until next BeginHyper3DOpacityFade. */
 	bool bOpacityCycleEndedHidden = false;
+
+	mutable TWeakObjectPtr<UMaterialInterface> CachedProceduralBaseMaterial;
 };
 

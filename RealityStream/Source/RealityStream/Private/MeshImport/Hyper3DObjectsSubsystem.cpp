@@ -1,4 +1,6 @@
 #include "MeshImport/Hyper3DObjectsSubsystem.h"
+#include "RealityStreamPaths.h"
+#include "RealityStreamMaterials.h"
 #include "SplatCreator/SplatCreatorSubsystem.h"
 #include "ComfyStream/ComfyStreamActor.h"
 
@@ -21,6 +23,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "Misc/Guid.h"
+#include "Engine/Texture.h"
 #include "Engine/Texture2D.h"
 #include "Math/RandomStream.h"
 #include "Modules/ModuleManager.h"
@@ -29,6 +32,7 @@
 #include "HAL/PlatformFilemanager.h"
 #include "HAL/PlatformProcess.h"
 #include "Misc/DateTime.h"
+#include "UObject/UObjectGlobals.h"
 
 #if WITH_EDITOR
 #include "AssetToolsModule.h"
@@ -51,10 +55,6 @@ namespace Hyper3DObjectsImport
 	static constexpr TCHAR ProceduralMeshTextureMaterialPathAlt[] = TEXT("/Game/M_ProceduralMeshTexture.M_ProceduralMeshTexture");
 	static constexpr TCHAR ProceduralMeshTextureMaterialPathAlt2[] = TEXT("/Game/ImportedTextures/M_ProceduralMeshTexture.M_ProceduralMeshTexture");
 	// Try to use materials that exist in UE5.6 (only as last resort fallback)
-	static constexpr TCHAR VertexColorMaterialPathA[] = TEXT("/Game/_GENERATED/Materials/M_VertexColor.M_VertexColor");
-	static constexpr TCHAR VertexColorMaterialPathB[] = TEXT("/Game/M_VertexColor.M_VertexColor");
-	static constexpr TCHAR EditorVertexColorMaterialPath[] = TEXT("/Engine/EditorMaterials/WidgetVertexColorMaterial");
-
 	static float DegsPerRad(float Radians)
 	{
 		return Radians * 57.29577951308232f;
@@ -520,7 +520,9 @@ void UHyper3DObjectsSubsystem::RefreshObjects()
 	const FString ImportDir = GetImportDirectory();
 	if (!FPaths::DirectoryExists(ImportDir))
 	{
-		if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects] MeshImport directory not found: %s"), *ImportDir);
+		UE_LOG(LogTemp, Warning,
+			TEXT("[Hyper3DObjects] MeshImport directory not found: %s — 3D objects will not spawn. Repackage so MeshImport is staged under Plugins/RealityStream."),
+			*ImportDir);
 		return;
 	}
 
@@ -537,10 +539,8 @@ void UHyper3DObjectsSubsystem::RefreshObjects()
 			Actor->Destroy();
 		}
 
-		if (UTexture2D* Texture = Instance.DiffuseTexture.Get())
-		{
-			LoadedTextures.Remove(Texture);
-		}
+		// Do not remove textures from LoadedTextures here: MeshDataCache and other instances may still
+		// hold raw UTexture2D* pointers. Removing refs lets GC reclaim them while stale pointers remain.
 
 		ObjectInstances.RemoveAt(Index);
 	};
@@ -667,6 +667,7 @@ void UHyper3DObjectsSubsystem::RefreshObjects()
 					NewCache.TextureSet = ResolveAllTexturesForOBJ(FullPath, MtlFile);
 					NewCache.bIsValid = true;
 					MeshDataCache.Add(FullPath, NewCache);
+					KeepTexturesAlive(NewCache.TextureSet);
 					if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Cached OBJ data for %s"), *FPaths::GetCleanFilename(FullPath));
 				}
 			}
@@ -1117,14 +1118,6 @@ bool UHyper3DObjectsSubsystem::SpawnObjectGroupFromOBJ(const FString& ObjPath)
 
 	ObjectInstances.Add(Instance);
 
-	// Track all loaded textures
-	if (TextureSet.Diffuse) LoadedTextures.Add(TextureSet.Diffuse);
-	if (TextureSet.Metallic) LoadedTextures.Add(TextureSet.Metallic);
-	if (TextureSet.Normal) LoadedTextures.Add(TextureSet.Normal);
-	if (TextureSet.Roughness) LoadedTextures.Add(TextureSet.Roughness);
-	if (TextureSet.PBR) LoadedTextures.Add(TextureSet.PBR);
-	if (TextureSet.Shaded) LoadedTextures.Add(TextureSet.Shaded);
-
 	double TotalTime = FPlatformTime::Seconds() - StartTime;
 	if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Total spawn time: %.3f seconds for %s"), TotalTime, *FPaths::GetCleanFilename(ObjPath));
 
@@ -1138,8 +1131,10 @@ bool UHyper3DObjectsSubsystem::SpawnObjectFromCachedData(const FString& ObjPath,
 		return false;
 	}
 
+	FCachedMeshData& MutableCached = const_cast<FCachedMeshData&>(CachedData);
+
 	// Load all textures (these are already resolved in the cache)
-	AActor* ObjectActor = CreateObjectActor(ObjPath, const_cast<FTextureSet&>(CachedData.TextureSet));
+	AActor* ObjectActor = CreateObjectActor(ObjPath, MutableCached.TextureSet);
 	if (!ObjectActor)
 	{
 		return false;
@@ -1166,19 +1161,19 @@ bool UHyper3DObjectsSubsystem::SpawnObjectFromCachedData(const FString& ObjPath,
 		RootComponent->SetWorldRotation(BaseMeshRotation);
 	}
 
-	UMaterialInstanceDynamic* SpawnMID = ApplyMaterial(MeshComp, ObjectActor, CachedData.TextureSet, CachedData.Colors);
+	UMaterialInstanceDynamic* SpawnMID = ApplyMaterial(MeshComp, ObjectActor, MutableCached.TextureSet, CachedData.Colors);
 
 	FObjectInstance Instance;
 	Instance.SourceObjPath = ObjPath;
 	Instance.Actor = ObjectActor;
 	Instance.ProceduralMaterialMID = SpawnMID;
 	Instance.RandomRotation = BaseMeshRotation; // Will be randomized in UpdateObjectLayout
-	Instance.DiffuseTexture = CachedData.TextureSet.Diffuse;
-	Instance.MetallicTexture = CachedData.TextureSet.Metallic;
-	Instance.NormalTexture = CachedData.TextureSet.Normal;
-	Instance.RoughnessTexture = CachedData.TextureSet.Roughness;
-	Instance.PBRTexture = CachedData.TextureSet.PBR;
-	Instance.ShadedTexture = CachedData.TextureSet.Shaded;
+	Instance.DiffuseTexture = MutableCached.TextureSet.Diffuse;
+	Instance.MetallicTexture = MutableCached.TextureSet.Metallic;
+	Instance.NormalTexture = MutableCached.TextureSet.Normal;
+	Instance.RoughnessTexture = MutableCached.TextureSet.Roughness;
+	Instance.PBRTexture = MutableCached.TextureSet.PBR;
+	Instance.ShadedTexture = MutableCached.TextureSet.Shaded;
 
 	ObjectInstances.Add(Instance);
 
@@ -1246,46 +1241,48 @@ AActor* UHyper3DObjectsSubsystem::CreateObjectActor(const FString& ObjPath, FTex
 		return Texture;
 	};
 	
-	if (TextureSet.Diffuse == nullptr)
+	if (!IsValid(TextureSet.Diffuse))
 	{
 		FString DiffusePath = this->FindTextureInDirectory(Directory, TEXT("texture_diffuse"));
 		if (DiffusePath.IsEmpty()) DiffusePath = this->FindTextureInDirectory(Directory, TEXT("diffuse"));
 		if (!DiffusePath.IsEmpty()) TextureSet.Diffuse = LoadTextureFromPath(DiffusePath);
 	}
 
-	if (TextureSet.Metallic == nullptr)
+	if (!IsValid(TextureSet.Metallic))
 	{
 		FString MetallicPath = this->FindTextureInDirectory(Directory, TEXT("texture_metallic"));
 		if (MetallicPath.IsEmpty()) MetallicPath = this->FindTextureInDirectory(Directory, TEXT("metallic"));
 		if (!MetallicPath.IsEmpty()) TextureSet.Metallic = LoadTextureFromPath(MetallicPath);
 	}
 
-	if (TextureSet.Normal == nullptr)
+	if (!IsValid(TextureSet.Normal))
 	{
 		FString NormalPath = this->FindTextureInDirectory(Directory, TEXT("texture_normal"));
 		if (NormalPath.IsEmpty()) NormalPath = this->FindTextureInDirectory(Directory, TEXT("normal"));
 		if (!NormalPath.IsEmpty()) TextureSet.Normal = LoadTextureFromPath(NormalPath);
 	}
 
-	if (TextureSet.Roughness == nullptr)
+	if (!IsValid(TextureSet.Roughness))
 	{
 		FString RoughnessPath = this->FindTextureInDirectory(Directory, TEXT("texture_roughness"));
 		if (RoughnessPath.IsEmpty()) RoughnessPath = this->FindTextureInDirectory(Directory, TEXT("roughness"));
 		if (!RoughnessPath.IsEmpty()) TextureSet.Roughness = LoadTextureFromPath(RoughnessPath);
 	}
 
-	if (TextureSet.PBR == nullptr)
+	if (!IsValid(TextureSet.PBR))
 	{
 		FString PBRPath = this->FindTextureInDirectory(Directory, TEXT("texture_pbr"));
 		if (PBRPath.IsEmpty()) PBRPath = this->FindTextureInDirectory(Directory, TEXT("pbr"));
 		if (!PBRPath.IsEmpty()) TextureSet.PBR = LoadTextureFromPath(PBRPath);
 	}
 
-	if (TextureSet.Shaded == nullptr)
+	if (!IsValid(TextureSet.Shaded))
 	{
 		FString ShadedPath = this->FindTextureInDirectory(Directory, TEXT("shaded"));
 		if (!ShadedPath.IsEmpty()) TextureSet.Shaded = LoadTextureFromPath(ShadedPath);
 	}
+
+	KeepTexturesAlive(TextureSet);
 
 	return ObjectActor;
 }
@@ -1793,120 +1790,49 @@ UTexture2D* UHyper3DObjectsSubsystem::LoadTextureFromFile(const FString& Texture
 
 UMaterialInterface* UHyper3DObjectsSubsystem::GetOrCreateBaseMaterial() const
 {
-	// Try to load existing materials - prioritize user's material with texture parameters
-	UMaterialInterface* BaseMaterial = nullptr;
-	
-	// First, try to find the user's material using AssetRegistry (more reliable)
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	
-	// Try the specific path first: /Game/_GENERATED/Materials/M_ProceduralMeshTexture
-	// Use SoftObjectPath instead of deprecated GetAssetByObjectPath
-	FSoftObjectPath SpecificMaterialPath(TEXT("/Game/_GENERATED/Materials/M_ProceduralMeshTexture.M_ProceduralMeshTexture"));
-	BaseMaterial = Cast<UMaterialInterface>(SpecificMaterialPath.TryLoad());
-	if (BaseMaterial)
+	if (CachedProceduralBaseMaterial.IsValid())
 	{
-		if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Found user's material via SoftObjectPath at specific path: %s"), *BaseMaterial->GetPathName());
-		return BaseMaterial;
+		return CachedProceduralBaseMaterial.Get();
 	}
-	
-	// Search for materials with "ProceduralMeshTexture" in the name (fallback)
+
+	UMaterialInterface* BaseMaterial = nullptr;
+
+#if WITH_EDITOR
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+
 	TArray<FAssetData> AssetDataList;
 	FARFilter Filter;
 	Filter.ClassPaths.Add(UMaterial::StaticClass()->GetClassPathName());
 	Filter.ClassPaths.Add(UMaterialInstance::StaticClass()->GetClassPathName());
 	Filter.bRecursivePaths = true;
-	
-	// Try specific paths first
-	Filter.PackagePaths.Add(FName("/Game/_GENERATED/Materials")); // Prioritize the _GENERATED folder
+	Filter.PackagePaths.Add(FName("/Game/_GENERATED/Materials"));
 	AssetRegistryModule.Get().GetAssets(Filter, AssetDataList);
-	
-	// Look for materials with "ProceduralMeshTexture" or "M_ProceduralMeshTexture" in the name
+
 	for (const FAssetData& AssetData : AssetDataList)
 	{
-		FString AssetName = AssetData.AssetName.ToString();
-		if (AssetName.Contains(TEXT("ProceduralMeshTexture"), ESearchCase::IgnoreCase) ||
-			AssetName.Contains(TEXT("M_ProceduralMeshTexture"), ESearchCase::IgnoreCase))
+		const FString AssetName = AssetData.AssetName.ToString();
+		if (AssetName.Contains(TEXT("ProceduralMeshTexture"), ESearchCase::IgnoreCase))
 		{
 			BaseMaterial = Cast<UMaterialInterface>(AssetData.GetAsset());
 			if (BaseMaterial)
 			{
-				if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Found user's material via AssetRegistry: %s"), *BaseMaterial->GetPathName());
-				return BaseMaterial;
+				break;
 			}
 		}
-	}
-	
-	// Also search in /Game root (broader search)
-	AssetDataList.Empty();
-	Filter.PackagePaths.Empty();
-	Filter.PackagePaths.Add(FName("/Game"));
-	AssetRegistryModule.Get().GetAssets(Filter, AssetDataList);
-	
-	for (const FAssetData& AssetData : AssetDataList)
-	{
-		FString AssetName = AssetData.AssetName.ToString();
-		if (AssetName.Contains(TEXT("ProceduralMeshTexture"), ESearchCase::IgnoreCase) ||
-			AssetName.Contains(TEXT("M_ProceduralMeshTexture"), ESearchCase::IgnoreCase))
-		{
-			BaseMaterial = Cast<UMaterialInterface>(AssetData.GetAsset());
-			if (BaseMaterial)
-			{
-				if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Found user's material via AssetRegistry (broader search): %s"), *BaseMaterial->GetPathName());
-				return BaseMaterial;
-			}
-		}
-	}
-	
-	// Try direct path loading - prioritize the specific path the user wants
-	// First try: /Game/_GENERATED/Materials/M_ProceduralMeshTexture.M_ProceduralMeshTexture
-	BaseMaterial = LoadObject<UMaterialInterface>(nullptr, Hyper3DObjectsImport::ProceduralMeshTextureMaterialPath);
-	if (BaseMaterial)
-	{
-		if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Found user's material via direct path: %s"), *BaseMaterial->GetPathName());
-		return BaseMaterial;
-	}
-	
-	// Fallback paths (in case primary is not found)
-	if (!BaseMaterial)
-	{
-		BaseMaterial = LoadObject<UMaterialInterface>(nullptr, Hyper3DObjectsImport::ProceduralMeshTextureMaterialPathAlt);
-	}
-	if (!BaseMaterial)
-	{
-		BaseMaterial = LoadObject<UMaterialInterface>(nullptr, Hyper3DObjectsImport::ProceduralMeshTextureMaterialPathAlt2);
-	}
-	if (BaseMaterial)
-	{
-		if(debug) UE_LOG(LogTemp, Display, TEXT("[Hyper3DObjects] Found user's material via fallback path: %s"), *BaseMaterial->GetPathName());
-		return BaseMaterial;
-	}
-	
-	if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects] Could not find M_ProceduralMeshTexture material. Searched paths:"));
-	if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects]   - %s (PRIMARY)"), Hyper3DObjectsImport::ProceduralMeshTextureMaterialPath);
-	if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects]   - %s"), Hyper3DObjectsImport::ProceduralMeshTextureMaterialPathAlt);
-	if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects]   - %s"), Hyper3DObjectsImport::ProceduralMeshTextureMaterialPathAlt2);
-	if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects] Falling back to default materials..."));
-	
-	// Fallback to other materials (only if primary material not found)
-	// Note: These fallbacks are kept for compatibility but should rarely be needed
-	BaseMaterial = LoadObject<UMaterialInterface>(nullptr, Hyper3DObjectsImport::VertexColorMaterialPathA);
-	if (!BaseMaterial)
-	{
-		BaseMaterial = LoadObject<UMaterialInterface>(nullptr, Hyper3DObjectsImport::VertexColorMaterialPathB);
-	}
-	if (!BaseMaterial)
-	{
-		BaseMaterial = LoadObject<UMaterialInterface>(nullptr, Hyper3DObjectsImport::EditorVertexColorMaterialPath);
 	}
 
-#if WITH_EDITOR
-	// If no material found, try to create a simple material with texture parameters
 	if (!BaseMaterial)
 	{
 		BaseMaterial = CreateMaterialWithTextureParameters();
 	}
 #endif
 
+	if (!BaseMaterial)
+	{
+		BaseMaterial = RealityStreamMaterials::GetProceduralMeshBaseMaterial();
+	}
+
+	CachedProceduralBaseMaterial = BaseMaterial;
 	return BaseMaterial;
 }
 
@@ -1925,6 +1851,16 @@ UMaterial* UHyper3DObjectsSubsystem::CreateMaterialWithTextureParameters() const
 	return nullptr;
 }
 #endif
+
+void UHyper3DObjectsSubsystem::KeepTexturesAlive(const FTextureSet& TextureSet)
+{
+	if (IsValid(TextureSet.Diffuse)) { LoadedTextures.Add(TextureSet.Diffuse); }
+	if (IsValid(TextureSet.Metallic)) { LoadedTextures.Add(TextureSet.Metallic); }
+	if (IsValid(TextureSet.Normal)) { LoadedTextures.Add(TextureSet.Normal); }
+	if (IsValid(TextureSet.Roughness)) { LoadedTextures.Add(TextureSet.Roughness); }
+	if (IsValid(TextureSet.PBR)) { LoadedTextures.Add(TextureSet.PBR); }
+	if (IsValid(TextureSet.Shaded)) { LoadedTextures.Add(TextureSet.Shaded); }
+}
 
 UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 	UProceduralMeshComponent* MeshComp,
@@ -1977,7 +1913,13 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 	// Helper function to find and set texture parameter
 	auto SetTextureParameter = [&](UTexture2D* Texture, const TArray<FName>& ParameterNames, const FString& TextureType) -> bool
 	{
-		if (!Texture)
+		if (!IsValid(Texture))
+		{
+			return false;
+		}
+		// UObject::IsA requires a non-null GetClass; avoid passing stale pointers into the material path.
+		const UClass* TexClass = Texture->GetClass();
+		if (!TexClass || !TexClass->IsChildOf(UTexture::StaticClass()))
 		{
 			return false;
 		}
@@ -1995,23 +1937,13 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 			}
 		}
 
-		// If no parameter found, try SetTextureParameterValueByInfo (might work even without parameter)
-		for (const FName& ParamName : ParameterNames)
-		{
-			FMaterialParameterInfo ParamInfo(ParamName);
-			DynamicMaterial->SetTextureParameterValueByInfo(ParamInfo, Texture);
-			// Just try to set it - if the parameter doesn't exist, it will silently fail
-			// Note: We can't verify if it worked without GetTextureParameterValueByInfo, but we'll try anyway
-			return true; // Assume it worked
-		}
-
 		if(debug) UE_LOG(LogTemp, Warning, TEXT("[Hyper3DObjects] Could not apply %s texture - no matching parameter found"), *TextureType);
 		return false;
 	};
 
 	// Apply Diffuse/BaseColor texture (use Shaded if no Diffuse)
-	UTexture2D* BaseColorTexture = Textures.Diffuse ? Textures.Diffuse : Textures.Shaded;
-	if (BaseColorTexture)
+	UTexture2D* BaseColorTexture = IsValid(Textures.Diffuse) ? Textures.Diffuse : Textures.Shaded;
+	if (IsValid(BaseColorTexture))
 	{
 		static const FName BaseColorParams[] = {
 			TEXT("BaseColor"), TEXT("BaseColorTexture"), TEXT("Diffuse"), TEXT("DiffuseTexture"),
@@ -2021,7 +1953,7 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 	}
 
 	// Apply Normal map
-	if (Textures.Normal)
+	if (IsValid(Textures.Normal))
 	{
 		static const FName NormalParams[] = {
 			TEXT("Normal"), TEXT("NormalMap"), TEXT("NormalTexture"), TEXT("BumpMap")
@@ -2030,7 +1962,7 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 	}
 
 	// Apply Metallic texture
-	if (Textures.Metallic)
+	if (IsValid(Textures.Metallic))
 	{
 		static const FName MetallicParams[] = {
 			TEXT("Metallic"), TEXT("MetallicTexture"), TEXT("Metalness"), TEXT("MetalnessTexture")
@@ -2039,7 +1971,7 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 	}
 
 	// Apply Roughness texture
-	if (Textures.Roughness)
+	if (IsValid(Textures.Roughness))
 	{
 		static const FName RoughnessParams[] = {
 			TEXT("Roughness"), TEXT("RoughnessTexture"), TEXT("Rough"), TEXT("RoughTexture")
@@ -2048,7 +1980,7 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 	}
 
 	// Apply PBR texture (could be used for combined metallic/roughness or other PBR maps)
-	if (Textures.PBR)
+	if (IsValid(Textures.PBR))
 	{
 		static const FName PBRParams[] = {
 			TEXT("PBR"), TEXT("PBRTexture"), TEXT("MetallicRoughness"), TEXT("MetallicRoughnessTexture")
@@ -2067,15 +1999,7 @@ UMaterialInstanceDynamic* UHyper3DObjectsSubsystem::ApplyMaterial(
 
 FString UHyper3DObjectsSubsystem::GetImportDirectory() const
 {
-	const FString PluginDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectPluginsDir() / TEXT("RealityStream/MeshImport"));
-
-	if (FPaths::DirectoryExists(PluginDir))
-	{
-		return PluginDir;
-	}
-
-	// Fallback to explicit path provided by the user (absolute path)
-	return FString();
+	return RealityStreamPaths::GetMeshImportDir();
 }
 
 void UHyper3DObjectsSubsystem::DestroyAllObjects()
@@ -2088,11 +2012,6 @@ void UHyper3DObjectsSubsystem::DestroyAllObjects()
 		if (AActor* Actor = Instance.Actor.Get())
 		{
 			Actor->Destroy();
-		}
-
-		if (UTexture2D* Texture = Instance.DiffuseTexture.Get())
-		{
-			LoadedTextures.Remove(Texture);
 		}
 	}
 
